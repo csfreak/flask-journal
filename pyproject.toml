@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flask_journal"
+authors = [
+  { name="Jason Ross", email="github@csfreak.com" },
+]
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Framework :: Flask",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Development Status :: 3 - Alpha",
+    "Environment :: Web Environment",
+]
+dynamic = ["version", "dependencies", "optional-dependencies"]
+
+[project.urls]
+"Homepage" = "https://github.com/csfreak/flask-journal"
+"Bug Tracker" = "https://github.com/csfreak/flask-journal"
+
+[tool.setuptools.dynamic]
+version = {file = "VERSION"}
+dependencies = {file = "requirements.txt"}
+optional-dependencies = {file = "extra-requirements.txt"}
+
+[tool.flake8]
+max-line-length = 120
+max-complexity = 10
+
+[tool.autopep8]
+max_line_length = 120
+in-place = true
+recursive = true
+aggressive = 2
+
+[tool.coverage.run]
+branch = true
+source = ["flask_journal"]
+command_line = "-m unittest discover -s test -t ."
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+fail_under = 70

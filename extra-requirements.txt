@@ -1,0 +1,11 @@
+attrs [dev] >= 23.1.0 
+flake8 [dev] >= 6.0.0 
+flake8-annotations [dev] >= 3.0.1 
+flake8-pyproject [dev] >= 1.2.3
+mccabe [dev] >= 0.7.0 
+pyflakes [dev] >= 3.0.0
+coverage [dev] >= 7.2.0
+
+flask-unittest [test] >= 0.1.3
+
+gunicorn [deploy] >= 20.1.0

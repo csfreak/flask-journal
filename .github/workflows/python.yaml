@@ -1,0 +1,54 @@
+name: Lint and Test
+
+on:
+  pull_request:
+    branches:
+      - "main"
+      - "dev"
+    paths:
+      - "**.py"
+      - "build/*"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: |
+            requirements.txt
+            extra-requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install .[dev,test]
+
+      - name: Setup flake8 annotations
+        uses: rbialon/flake8-annotations@v1
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --show-source --statistics
+      - name: UnitTests
+        run: |
+          coverage run
+          coverage report
+      - name: GetVersion
+        id: get_version
+        run: |
+          echo "version=$(cat VERSION)" >> "$GITHUB_OUTPUT"
+      - name: Buildah
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: flask-journal
+          tags: ${{ github.sha }}
+          containerfiles: |
+            ./Dockerfile
+          build-args: |
+            APP_VERSION=${{ steps.get_version.outputs.version }}-${{ github.sha }}
+          oci: true
