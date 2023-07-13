@@ -1,8 +1,14 @@
 Flask >= 2.3.2
 
+# DB Packages
 Flask-SQLAlchemy >= 3.0.5
 SQLAlchemy >= 2.0.0
 alembic >= 1.11.0
-Flask-Alembic >= 2.0.1
+flask-migrate >= 4.0.4
+sqlalchemy_easy_softdelete >= 0.8.2
+PyMySQ >= 1.1.0
+
+Flask-Security-Too >= 5.2.0
+argon2-cffi >= 21.3
 
 prometheus-flask-exporter >= 0.22.0
