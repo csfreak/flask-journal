@@ -2,7 +2,7 @@ from datetime import datetime
 
 from flask_wtf import FlaskForm
 from wtforms import (BooleanField, EmailField, FormField, PasswordField,
-                     SelectField, StringField)
+                     SelectField, StringField, SubmitField)
 from wtforms.validators import Length
 
 from ..views.themes import Theme
@@ -20,6 +20,11 @@ class UserTrackingForm(UnmanagedForm):
 
 class UserSettingsForm(FlaskForm):
     theme = SelectField(name="Theme", choices=list(Theme))
+
+
+class UserSettingsFormSubmit(FlaskForm):
+    theme = SelectField(name="Theme", choices=list(Theme))
+    submit = SubmitField(name="Update")
 
 
 class UserForm(CustomForm):

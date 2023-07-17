@@ -4,6 +4,7 @@ from flask_migrate import Migrate, upgrade
 from .db import db
 from .entry import Entry  # noqa: F401
 from .rbac import Role  # noqa: F401
+from .setup import init_data
 from .tag import Tag  # noqa: F401
 from .user import User, UserSettings  # noqa: F401
 
@@ -15,3 +16,4 @@ def init_db(app: Flask) -> None:
     migrate.init_app(app, db)
     with app.app_context():
         upgrade()
+    init_data(app)

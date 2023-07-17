@@ -1,7 +1,33 @@
 {% extends "journal/base.html" %}
+{% from "bootstrap5/form.html" import render_form %}
 
 {% block content %}
 
 Settings Page
 
+{{ render_form(form=form) }}
+
+<div class="accordion my-5" id="themePreviews">
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePreview" aria-expanded="true" aria-controls="collapsePreview">
+          Theme Previews
+        </button>
+      </h2>
+      <div id="collapsePreview" class="accordion-collapse collapse" data-bs-parent="#themePreviews">
+        <div class="accordion-body">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4" id="themePreview" >
+                {%- for theme in themes -%}
+                {%- if theme != 'default' -%}  
+                <div class="col">
+                    <div class="card m-3">
+                        <img src="https://bootswatch.com/{{theme}}/thumbnail.png" alt="Theme {{theme}} preview" />
+                    </div>
+                </div>
+                {%- endif -%}
+                {%- endfor -%}
+            </div>
+        </div>
+      </div>
+    </div>
 {% endblock content %}
