@@ -21,6 +21,12 @@ class Tag(db.Model):
     entries = relationship('Entry', secondary="entry_tags",
                            back_populates='tags', uselist=True)
 
+    def __repr__(self: t.Self) -> str:
+        return f"Tag: {self.name}"
+
+    def __str__(self: t.Self) -> str:
+        return self.name
+
 
 class EntryTags(db.Model):
     __tablename__ = 'entry_tags'

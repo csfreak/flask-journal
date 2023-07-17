@@ -17,7 +17,7 @@ metadata = MetaData(naming_convention={
 })
 
 
-class JournalBaseModel(Model, generate_soft_delete_mixin_class(generate_undelete_method=False)):
+class JournalBaseModel(Model, generate_soft_delete_mixin_class(delete_method_default_value=lambda: datetime.utcnow().replace(microsecond=0))):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     created_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), server_default=sql.func.now(), nullable=False)
@@ -43,3 +43,7 @@ class JournalBaseModel(Model, generate_soft_delete_mixin_class(generate_undelete
     @classmethod
     def find_all(cls: t.Self) -> list[t.Self]:
         return cls.query.all()
+
+    @property
+    def immutable_attrs(self: t.Self) -> list[str]:
+        return ['id', 'created_at', 'updated_at', 'deleted_at']

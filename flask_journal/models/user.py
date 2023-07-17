@@ -1,3 +1,4 @@
+import typing as t
 import uuid
 from datetime import datetime
 
@@ -14,6 +15,8 @@ class User(db.Model, UserMixin):
     password: Mapped[str] = mapped_column(String(255), nullable=False)
     fs_uniquifier: Mapped[str] = mapped_column(
         String(64), unique=True, nullable=False, default=uuid.uuid4().hex)
+    confirmed_at: Mapped[datetime | None] = mapped_column(
+        DateTime, nullable=True)
 
     # Tracking Attributes
     last_login_at: Mapped[datetime | None] = mapped_column(
@@ -31,6 +34,20 @@ class User(db.Model, UserMixin):
 
     settings = relationship(
         "UserSettings", back_populates='user', uselist=False)
+
+    def __repr__(self: t.Self) -> str:
+        return f"User: {self.email}"
+
+    def __str__(self: t.Self) -> str:
+        return self.email
+
+    @property
+    def immutable_attrs(self: t.Self) -> list[str]:
+        return ['confirmed_at', 'last_login_at', 'current_login_at', 'last_login_ip', 'current_login_ip', 'login_count'] + super().immutable_attrs
+
+    @property
+    def tracking(self: t.Self) -> t.Self:
+        return self
 
 
 class UserSettings(db.Model):

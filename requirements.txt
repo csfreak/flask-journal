@@ -8,7 +8,12 @@ flask-migrate >= 4.0.4
 sqlalchemy_easy_softdelete >= 0.8.2
 PyMySQ >= 1.1.0
 
+# Security Packages
 Flask-Security-Too >= 5.2.0
 argon2-cffi >= 21.3
 
+# Metrics
 prometheus-flask-exporter >= 0.22.0
+
+# UI
+bootstrap-flask >= 2.2.0

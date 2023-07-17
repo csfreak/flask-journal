@@ -1,0 +1,56 @@
+
+{% macro render_nav_item(endpoint, text, _badge='', _use_li=False, class='') %}
+    {% set active = True if request.endpoint and request.endpoint == endpoint else False %}
+    {% if _use_li %}<li class="nav-item">{% endif %}
+    <a class="{% if not _use_li %}nav-item {% endif %}nav-link{% if active %} active {{class}}" aria-current="page{% endif %}"
+       href="{{ url_for(endpoint, **kwargs) }}">
+        {{ text }} {% if _badge %}<span class="badge badge-light">{{ _badge }}</span>{% endif %}
+    </a>
+    {% if _use_li %}</li>{% endif %}
+{% endmacro %}
+
+{% block navbar %}
+    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+        <div class="container-lg">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+                    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <div class="navbar-nav me-auto">
+                    {{ render_nav_item('journal.home', 'Home') }}
+                    {% if current_user and current_user.is_authenticated %}
+                        {{ render_nav_item('journal.tags', 'Tags') }}
+                        {{ render_nav_item('journal.entries', 'Entries') }}
+                        {%- if current_user.has_role('admin') -%}
+                            <div class="dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarManageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Manage Users
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                                    <a class="dropdown-item" href="{{ url_for('journal.users') }}">Users</a>
+                                    <a class="dropdown-item" href="{{ url_for('journal.roles') }}">Roles</a>
+                                </div>
+                            </div>
+                        {%- endif -%}
+                    {%- endif -%}
+                </div>
+                {%- if current_user and current_user.is_authenticated -%}
+                    <div class="navbar-nav dropdown ms-auto">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarAcountDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Account
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                            <a class="dropdown-item" href="{{ url_for('journal.settings') }}">Settings</a>
+                            <a class="dropdown-item" href="{{ url_for('security.logout') }}">Logout</a>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="navbar-nav ms-auto">
+                        {{ render_nav_item('security.login', 'Login') }}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+{% endblock navbar %}

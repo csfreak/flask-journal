@@ -23,11 +23,11 @@ class Entry(db.Model):
                         back_populates='entries', uselist=True)
 
     @hybrid_property
-    def data(self: t.Self) -> str:
+    def content(self: t.Self) -> str:
         return self._decode_data(self._data)
 
-    @data.inplace.setter
-    def _data_setter(self: t.Self, value: str) -> None:
+    @content.inplace.setter
+    def _content_setter(self: t.Self, value: str) -> None:
         self._data = self._encode_data(value)
 
     @hybrid_property
@@ -57,3 +57,7 @@ class Entry(db.Model):
     def _decrypt(self: t.Self, data: bytes) -> bytes:
         # TODO
         return data
+
+    @property
+    def tag_names(self: t.Self) -> str:
+        return " ".join([tag.name for tag in self.tags]) if self.tags is not None else ""

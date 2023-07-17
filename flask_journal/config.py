@@ -3,6 +3,8 @@ import os
 import typing as t
 from datetime import timedelta
 
+from flask import Flask
+
 
 class DefaultConfig(object):
     # FLASK CORE
@@ -85,8 +87,9 @@ class DefaultConfig(object):
 class Config(DefaultConfig):
 
     def __init__(self: t.Self,
-                 mapping: t.Mapping[str, t.Any] | None = None, 
+                 mapping: t.Mapping[str, t.Any] | None = None,
                  **kwargs: t.Any) -> None:
+        super().__init__()
         self.IS_GUNICORN = bool(os.getenv('IS_GUNICORN', False))
         if mapping:
             self._load_mapping(mapping)
@@ -95,3 +98,29 @@ class Config(DefaultConfig):
     def _load_mapping(self: t.Self, mapping: t.Mapping[str, t.Any]) -> None:
         for key, value in mapping.items():
             setattr(self, key, value)
+
+
+def init_config(app: Flask, c: Config | None) -> None:
+    if c is None:
+        c = Config()
+    app.config.from_object(c)
+
+    set_debug_opts(app)
+    set_env_opts(app)
+
+    for k, v in app.config.items():
+        app.logger.debug("Setting %s has %s", k, v)
+
+
+def set_debug_opts(app: Flask) -> None:
+    if not app.debug:
+        return
+    app.config['EXPLAIN_TEMPLATE_LOADING'] = False
+    app.config['SQLALCHEMY_ECHO'] = True
+    app.config['TEMPLATES_AUTO_RELOAD'] = True
+    logging.getLogger().setLevel(logging.DEBUG)
+
+
+def set_env_opts(app: Flask) -> None:
+    if not app.testing:
+        app.config.from_prefixed_env("JOURNAL")

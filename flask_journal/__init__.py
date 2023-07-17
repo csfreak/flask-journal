@@ -14,5 +14,9 @@ dictConfig({
     'root': {
         'level': 'INFO',
         'handlers': ['wsgi']
+    },
+    'sqlalchemy': {
+        'level': 'DEBUG',
+        'handlers': ['wsgi']
     }
 })
