@@ -3,9 +3,10 @@ import uuid
 from datetime import datetime
 
 from flask_security.core import UserMixin
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from ..views import Theme
 from .db import db
 
 
@@ -43,7 +44,7 @@ class User(db.Model, UserMixin):
 
     @property
     def immutable_attrs(self: t.Self) -> list[str]:
-        return ['confirmed_at', 'last_login_at', 'current_login_at', 'last_login_ip', 'current_login_ip', 'login_count'] + super().immutable_attrs
+        return ['tracking'] + super().immutable_attrs
 
     @property
     def tracking(self: t.Self) -> t.Self:
@@ -53,8 +54,11 @@ class User(db.Model, UserMixin):
 class UserSettings(db.Model):
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("user.id"), nullable=False)
-    encrypt_entries: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False)
-    encryption_key: Mapped[str] = mapped_column(String, nullable=True)
+    # encrypt_entries: Mapped[bool] = mapped_column(
+    #     Boolean, nullable=False, default=False)
+    # encryption_key: Mapped[str] = mapped_column(String, nullable=True)
+
+    theme: Mapped[Theme] = mapped_column(
+        Enum(Theme), nullable=False, default='default')
 
     user = relationship('User', back_populates='settings', uselist=False)

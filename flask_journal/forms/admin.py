@@ -1,9 +1,11 @@
 from datetime import datetime
 
+from flask_wtf import FlaskForm
 from wtforms import (BooleanField, EmailField, FormField, PasswordField,
-                     StringField)
+                     SelectField, StringField)
 from wtforms.validators import Length
 
+from ..views.themes import Theme
 from .base import CustomForm, UnmanagedForm
 from .fields import DisplayDateTimeField, DisplayStringField, RoleField
 
@@ -16,9 +18,8 @@ class UserTrackingForm(UnmanagedForm):
     login_count = DisplayStringField(name='Login Count')
 
 
-class UserSettingsForm(UnmanagedForm):
-    encrypt_entries = BooleanField(name="Encrypt Entries")
-    encryption_key = PasswordField(name="Encryption Key")
+class UserSettingsForm(FlaskForm):
+    theme = SelectField(name="Theme", choices=list(Theme))
 
 
 class UserForm(CustomForm):
