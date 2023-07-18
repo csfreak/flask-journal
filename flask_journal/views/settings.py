@@ -21,4 +21,4 @@ def settings() -> Response | str:
         db.session.commit()
         flash("Settings Updated Successfully")
 
-    return render_template('journal/settings.html', form=form, themes=list(Theme))
+    return render_template('journal/settings.html', form=form, themes=list(Theme), title="Settings")

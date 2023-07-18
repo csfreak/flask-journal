@@ -13,6 +13,7 @@ from .utils import process_request_id
 
 
 def render_form(form: CustomForm,
+                model: JournalBaseModel,
                 primary_fields: list[str] | None = None,
                 action: str = 'view',
                 **context) -> str:
@@ -24,6 +25,7 @@ def render_form(form: CustomForm,
         form=form,
         action=action,
         primary_fields=primary_fields,
+        title=f"{action} {model.__name__}".capitalize(),
         **context
     )
 
@@ -53,9 +55,9 @@ def form_view(model: JournalBaseModel, form_class: type[CustomForm], table_view:
             form.process(obj=obj)
             flash(
                 f"{model.__name__} {'Updated' if form.update.data else 'Created'} Successfully")
-            return render_form(form=form, primary_fields=primary_fields)
+            return render_form(form=form, primary_fields=primary_fields, model=model)
         elif form.edit.data:
-            return render_form(form=form, primary_fields=primary_fields, action='edit')
+            return render_form(form=form, primary_fields=primary_fields, action='edit', model=model)
         elif form.delete.data:
             if obj:
                 flash(f"Deleted {obj}")
@@ -74,8 +76,8 @@ def form_view(model: JournalBaseModel, form_class: type[CustomForm], table_view:
                 return render_form(form=form, primary_fields=primary_fields)
             flash("Delete Failed", category='error')
     if id is None:
-        return render_form(form=form, primary_fields=primary_fields, action='new')
-    return render_form(form=form, primary_fields=primary_fields)
+        return render_form(form=form, primary_fields=primary_fields, action='new', model=model)
+    return render_form(form=form, primary_fields=primary_fields, model=model)
 
 
 def table_view(model: JournalBaseModel,
@@ -109,4 +111,5 @@ def table_view(model: JournalBaseModel,
     return render_template('journal/tablebase.html',
                            pagination=pagination,
                            titles=titles,
-                           endpoint=endpoint)
+                           endpoint=endpoint,
+                           title=request.endpoint.split('.')[-1].capitalize())

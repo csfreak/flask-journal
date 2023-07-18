@@ -6,8 +6,8 @@
 <html{% block html_attribs %}{% endblock html_attribs %}>
   <head>
     {%- block head %}
-    <title>{% block title %}{{ title|default }}{% endblock title %}</title>
-      <meta charset="utf8"
+    <title>{% block title %}Journal{%- if title is defined %} - {{ title }}{%- endif -%}{% endblock title %}</title>
+      <meta charset="utf8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
       {{ load_bootswatch_theme() }}    
@@ -24,16 +24,28 @@
       {% block navbar %}
       {% include "journal/_nav.html" %}
       {%- endblock navbar -%}
+      {%- block navtitle -%}
+      {%- if title is defined -%}
+      <div class="container-fluid justify-content-center justify-content-middle">
+        <p class="h1 text-center">
+                {{title}}
+        </p>                  
+        </div>
+        {%- endif -%}
+        {%- endblock navtitle -%}
 
+
+       {%- block fullcontent -%}
        <main class="container">
        {{ render_messages(container=False, dismissible=True, dismiss_animate=True) }}
        {% block content -%}
        {%- endblock content %}
        </main>
+       {%- endblock fullcontent -%}
 
-       <footer class="text-center w-100 position-relative bottom-0">
+       <footer class="text-center w-100 position-relative bottom-0 mt-5">
         {% block footer %}
-            <small> &copy; <script>document.write(new Date().getFullYear())</script> <a href="https://github.com/csfreak">CSfreak</a>
+            <small> &copy;<script>document.write(new Date().getFullYear())</script> <a href="https://github.com/csfreak">Jason Ross</a>
             </small>
         {% endblock %}
        </footer>

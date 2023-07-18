@@ -11,6 +11,9 @@ def create_app(c: Config | None = None) -> Flask:
                        root_path=os.getenv('FLASK_ROOT_PATH', None))
     init_config(app, c)
 
+    from .errors import init_errors
+    init_errors(app)
+
     from .models import db, init_db  # noqa F401
     init_db(app)
 

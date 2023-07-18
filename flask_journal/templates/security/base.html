@@ -1,1 +1,16 @@
 {% extends "journal/base.html" %}
+
+{%- block fullcontent -%}
+    <main class="container">
+       {{ render_messages(container=False, dismissible=True, dismiss_animate=True) }}
+       <div class="d-flex row justify-content-md-center">
+        <div class="col-md-auto border border-opacity-10 border-secondary-subtle pb-3">
+       {% block content -%}
+       {%- endblock content %}
+       </div>
+    </div>
+    </main>
+{%- endblock fullcontent -%}
+
+{%- block navtitle -%}
+{%- endblock -%}
