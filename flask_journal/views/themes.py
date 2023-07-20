@@ -33,7 +33,7 @@ class Theme(StrEnum):
     zephyr = auto()
 
 
-def load_theme(version=None, bootstrap_sri=None):
+def load_theme(version: str | None = None, bootstrap_sri: str | None = None) -> Markup:
     """Load Bootstrap's css resources with given version.
 
     .. versionadded:: 0.1.0

@@ -1,8 +1,8 @@
 
-from flask_login import current_user, login_required
+from flask_login import login_required
 
 from ..forms import EntryForm
-from ..models import Entry, db
+from ..models import Entry
 from . import bp, werkzeugResponse
 from .base import form_view, table_view
 

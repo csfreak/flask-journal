@@ -5,14 +5,14 @@ from flask_bootstrap import Bootstrap5
 from flask_login import current_user
 from werkzeug import Response as werkzeugResponse
 
-from .themes import Theme, load_theme
+from .themes import load_theme
 
 bp = Blueprint("journal", __name__, template_folder="templates")
 bootstrap = Bootstrap5()
 
 
 def init_views(app: Flask) -> None:
-    from . import admin, entry, home, settings, tag
+    from . import admin, entry, home, settings, tag  # noqa: F401
 
     app.register_blueprint(bp)
     bootstrap.init_app(app)

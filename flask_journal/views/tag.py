@@ -2,7 +2,7 @@
 from flask_login import login_required
 
 from ..forms import TagForm
-from ..models import Tag, db
+from ..models import Tag
 from . import bp, werkzeugResponse
 from .base import form_view, table_view
 

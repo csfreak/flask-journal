@@ -17,7 +17,9 @@ metadata = MetaData(naming_convention={
 })
 
 
-class JournalBaseModel(Model, generate_soft_delete_mixin_class(delete_method_default_value=lambda: datetime.utcnow().replace(microsecond=0))):
+class JournalBaseModel(Model,
+                       generate_soft_delete_mixin_class(
+                           delete_method_default_value=lambda: datetime.utcnow().replace(microsecond=0))):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     created_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), server_default=sql.func.now(), nullable=False)

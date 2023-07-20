@@ -3,10 +3,10 @@ import uuid
 from datetime import datetime
 
 from flask_security.core import UserMixin
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String
+from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from ..views import Theme
+from ..views.themes import Theme
 from .db import db
 
 

@@ -11,10 +11,10 @@ from .widgets import PlainTextWidget
 class DisplayDateTimeField(DateTimeField):
     widget = PlainTextWidget()
 
-    def process_formdata(self: t.Self, *args, **kwargs):
+    def process_formdata(self: t.Self, *args: t.Any, **kwargs: t.Any) -> None:
         pass
 
-    def populate_obj(self: t.Self, *args, **kwargs):
+    def populate_obj(self: t.Self, *args: t.Any, **kwargs: t.Any) -> None:
         pass
 
     def _value(self: t.Self) -> str:
@@ -24,16 +24,16 @@ class DisplayDateTimeField(DateTimeField):
 class DisplayStringField(StringField):
     widget = PlainTextWidget()
 
-    def process_formdata(self: t.Self, *args, **kwargs):
+    def process_formdata(self: t.Self, *args: t.Any, **kwargs: t.Any) -> None:
         pass
 
-    def populate_obj(self: t.Self, *args, **kwargs):
+    def populate_obj(self: t.Self, *args: t.Any, **kwargs: t.Any) -> None:
         pass
 
 
 class TagField(StringField):
 
-    def process_formdata(self, valuelist: list[str]):
+    def process_formdata(self: t.Self, valuelist: list[str]) -> None:
         if valuelist:
             self.data: list[Tag] = []
             for tag in valuelist[0].split(' '):
@@ -45,12 +45,12 @@ class TagField(StringField):
                     db.session.add(obj)
                 self.data.append(obj)
 
-    def _value(self):
+    def _value(self: t.Self) -> str:
         return " ".join([tag.name for tag in self.data]) if self.data is not None else ""
 
 
 class RoleField(StringField):
-    def process_formdata(self, valuelist: list[str]):
+    def process_formdata(self: t.Self, valuelist: list[str]) -> None:
         if valuelist:
             self.data: list[Role] = []
             for role in valuelist[0].split(' '):
@@ -61,5 +61,5 @@ class RoleField(StringField):
                     flash(f"Invalid Role {role}")
                 self.data.append(obj)
 
-    def _value(self):
+    def _value(self: t.Self) -> str:
         return " ".join([role.name for role in self.data]) if self.data is not None else ""

@@ -1,7 +1,7 @@
 import typing as t
 
 from markupsafe import Markup
-from wtforms import Field, StringField
+from wtforms import Field
 from wtforms.widgets.core import html_params
 
 
@@ -10,7 +10,7 @@ class PlainTextWidget:
     html_params = staticmethod(html_params)
     validation_attrs = ["required"]
 
-    def __call__(self: t.Self, field: Field, **kwargs) -> str:
+    def __call__(self: t.Self, field: Field, **kwargs: t.Any) -> str:
         kwargs.setdefault("id", field.id)
         kwargs.setdefault("type", 'text')
         out_class = ["form-control-plaintext"]

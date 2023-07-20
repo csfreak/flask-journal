@@ -3,7 +3,7 @@ from flask_login import login_required
 from flask_security.decorators import roles_required
 
 from ..forms import RoleForm, UserForm
-from ..models import Role, User, db
+from ..models import Role, User
 from . import bp, werkzeugResponse
 from .base import form_view, table_view
 

@@ -1,7 +1,6 @@
 from datetime import datetime
 
-from wtforms import (BooleanField, FieldList, HiddenField, StringField,
-                     SubmitField, TextAreaField)
+from wtforms import BooleanField, StringField, TextAreaField
 from wtforms.validators import Length
 
 from .base import CustomForm

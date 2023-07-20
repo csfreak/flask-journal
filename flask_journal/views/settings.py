@@ -1,7 +1,6 @@
 
-from flask import Response, flash, jsonify, render_template, request
+from flask import Response, flash, render_template
 from flask_login import current_user, login_required
-from sqlalchemy.sql import desc
 
 from ..forms import UserSettingsFormSubmit
 from ..models import UserSettings, db

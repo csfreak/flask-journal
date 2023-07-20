@@ -9,5 +9,6 @@ coverage [dev] >= 7.2.0
 python-dotenv [dev]
 
 flask-unittest [test] >= 0.1.3
+mock [test] >= 5.1.0
 
 gunicorn [deploy] >= 20.1.0

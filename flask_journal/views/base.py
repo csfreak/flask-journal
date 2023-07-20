@@ -1,4 +1,6 @@
-from flask import flash, redirect, render_template, request, url_for
+import typing as t
+
+from flask import abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user
 from flask_sqlalchemy.pagination import Pagination
 from flask_sqlalchemy.query import Query
@@ -8,15 +10,14 @@ from sqlalchemy.sql import ColumnExpressionArgument, desc
 from ..forms import CustomForm
 from ..models import db
 from ..models.base import JournalBaseModel
-from . import werkzeugResponse
-from .utils import process_request_id
+from . import utils, werkzeugResponse
 
 
 def render_form(form: CustomForm,
                 model: JournalBaseModel,
                 primary_fields: list[str] | None = None,
                 action: str = 'view',
-                **context) -> str:
+                **context: t.Any) -> str:
 
     if action not in ['new', 'view', 'edit']:
         raise ValueError("action must be view or edit")
@@ -25,59 +26,68 @@ def render_form(form: CustomForm,
         form=form,
         action=action,
         primary_fields=primary_fields,
-        title=f"{action} {model.__name__}".capitalize(),
+        title=f"{action} {model.__name__}",
         **context
     )
 
 
-def form_view(model: JournalBaseModel, form_class: type[CustomForm], table_view: str, primary_fields: list[str] | None = None) -> werkzeugResponse | str:
-    id = process_request_id()
-    include_deleted: bool = True if current_user.has_role(  # pyright: ignore
-        'manage') else False
-    query: Query = model.query.filter_by(id=id)
-    if hasattr(model, 'user'):
-        query = query.filter_by(user=current_user)
-    elif not current_user.has_role('admin'):  # pyright: ignore
-        flash(f"Unable to Access Resource {model}")
-        return redirect('.index')
-    query = query.execution_options(
-        include_deleted=include_deleted)
-    obj: JournalBaseModel = query.first()  # pyright: ignore
-    form = form_class(obj=obj)
+def form_view(
+        model: JournalBaseModel,
+        form_class: type[CustomForm],
+        table_view: str,
+        **context: t.Any) -> werkzeugResponse | str:
 
+    id = utils.process_request_id()
+
+    query: Query = utils.build_query(model=model, filters=dict(id=id))
+
+    obj: JournalBaseModel = query.first()
+    form = form_class(obj=obj)
+    context.update(dict(form=form, model=model))
+    message: str = model.__name__
+    category: str = 'message'
     if form.validate_on_submit():
-        if form.create.data:
-            obj = model(user=current_user)
-        if form.update.data or form.create.data:
-            form.populate_obj(obj)
-            db.session.add(obj)
-            db.session.commit()
-            form.process(obj=obj)
-            flash(
-                f"{model.__name__} {'Updated' if form.update.data else 'Created'} Successfully")
-            return render_form(form=form, primary_fields=primary_fields, model=model)
-        elif form.edit.data:
-            return render_form(form=form, primary_fields=primary_fields, action='edit', model=model)
-        elif form.delete.data:
-            if obj:
-                flash(f"Deleted {obj}")
+        match utils.form_submit_action(form):
+            case 'Create' if id is None:
+                obj = model(user=current_user)
+                form.populate_obj(obj)
+                db.session.add(obj)
+                db.session.commit()
+                form.process(obj=obj)
+                id = obj.id
+                message = f"{message} Created"
+            case 'Update' if obj:
+                form.populate_obj(obj)
+                db.session.add(obj)
+                db.session.commit()
+                form.process(obj=obj)
+                message = f"{message} Updated"
+            case 'Edit' if obj:
+                context['action'] = 'edit'
+            case 'Delete' if obj:
                 obj.delete()
                 db.session.add(obj)
                 db.session.commit()
+                flash(f"{message} Deleted")
                 return redirect(url_for(table_view))
-            flash("Delete Failed", category='error')
-        elif form.undelete.data:
-            if obj:
-                flash(f"Restore {obj}")
+            case 'Undelete' if obj and current_user.has_role('manage'):
                 obj.undelete()
                 db.session.add(obj)
                 db.session.commit()
                 form.process(obj=obj)
-                return render_form(form=form, primary_fields=primary_fields)
-            flash("Delete Failed", category='error')
+                message = f"{message} Restored"
+                category = 'warning'
+            case form_action:
+                message = f"Unable to {form_action} {message}"
+                category = 'error'
+
     if id is None:
-        return render_form(form=form, primary_fields=primary_fields, action='new', model=model)
-    return render_form(form=form, primary_fields=primary_fields, model=model)
+        context['action'] = 'new'
+    elif obj is None:
+        abort(404)
+    if message != model.__name__ or category != 'message':
+        flash(message, category=category)
+    return render_form(**context)
 
 
 def table_view(model: JournalBaseModel,
@@ -112,4 +122,4 @@ def table_view(model: JournalBaseModel,
                            pagination=pagination,
                            titles=titles,
                            endpoint=endpoint,
-                           title=request.endpoint.split('.')[-1].capitalize())
+                           title=request.endpoint.split('.')[-1])

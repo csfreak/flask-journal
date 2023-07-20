@@ -11,6 +11,7 @@ PyMySQ >= 1.1.0
 # Security Packages
 Flask-Security-Too >= 5.2.0
 argon2-cffi >= 21.3
+flask-mailman >= 0.3.0
 
 # Metrics
 prometheus-flask-exporter >= 0.22.0

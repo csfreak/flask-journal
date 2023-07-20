@@ -11,7 +11,7 @@ roles = {
 }
 
 
-def init_roles(app: Flask):
+def init_roles(app: Flask) -> None:
     with app.app_context():
         for name, role in roles.items():
             if Role.query.filter_by(name=name).first() is None:
@@ -20,5 +20,7 @@ def init_roles(app: Flask):
         db.session.commit()
 
 
-def init_data(app: Flask):
+def init_data(app: Flask) -> None:
+    with app.app_context():
+        db.create_all()  # This should be NOOP
     init_roles(app)

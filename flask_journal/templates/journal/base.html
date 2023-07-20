@@ -1,56 +1,51 @@
-{% from 'bootstrap5/utils.html' import render_messages %}
+{%- from 'bootstrap5/utils.html' import render_messages -%}
 
 
-{% block doc -%}
+{%- block doc -%}
 <!DOCTYPE html>
 <html{% block html_attribs %}{% endblock html_attribs %}>
   <head>
     {%- block head %}
-    <title>{% block title %}Journal{%- if title is defined %} - {{ title }}{%- endif -%}{% endblock title %}</title>
-      <meta charset="utf8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
-      {{ load_bootswatch_theme() }}    
-      {%- block head_scripts %}
-      {%- endblock head_scripts %}
-
-      {%- block styles %}
-      {%- endblock styles %}
+    <title>{% block title %}Journal{%- if title is defined %} - {{ title | title }}{%- endif -%}{% endblock title %}</title>
+    <meta charset="utf8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    {{ load_bootswatch_theme() }}    
+    {% block head_scripts -%}
+    {%- endblock head_scripts %}
+    {% block styles -%}
+    {%- endblock styles %}
     {%- endblock head %}
   </head>
   <body{% block body_attribs %}{% endblock body_attribs %}>
     {% block body -%}
       <div class="min-vh-100">
-      {% block navbar %}
-      {% include "journal/_nav.html" %}
+      {%- block navbar %}
+      {% include "journal/_nav.html" -%}
       {%- endblock navbar -%}
-      {%- block navtitle -%}
-      {%- if title is defined -%}
-      <div class="container-fluid justify-content-center justify-content-middle">
-        <p class="h1 text-center">
-                {{title}}
-        </p>                  
-        </div>
-        {%- endif -%}
-        {%- endblock navtitle -%}
+      {%- block navtitle %}
+      {% if title is defined -%}
+      <div class="container-fluid justify-content-center justify-content-middle"><p class="h1 text-center">{{title}}</p></div>
+      {% endif -%}
+      {%- endblock navtitle -%}
 
-
-       {%- block fullcontent -%}
-       <main class="container">
+      {%- block fullcontent %}
+      <main class="container">
        {{ render_messages(container=False, dismissible=True, dismiss_animate=True) }}
+       
        {% block content -%}
-       {%- endblock content %}
-       </main>
-       {%- endblock fullcontent -%}
+       {% endblock content -%}
 
-       <footer class="text-center w-100 position-relative bottom-0 mt-5">
-        {% block footer %}
-            <small> &copy;<script>document.write(new Date().getFullYear())</script> <a href="https://github.com/csfreak">Jason Ross</a>
-            </small>
-        {% endblock %}
-       </footer>
+      </main>
+      {% endblock fullcontent -%}
+
+      <footer class="text-center w-100 position-relative bottom-0 mt-5">
+        {% block footer -%}
+        <small> &copy;<script>document.write(new Date().getFullYear())</script> <a href="https://github.com/csfreak">Jason Ross</a></small>
+        {%- endblock %}
+      </footer>
     </div>
-    {{ bootstrap.load_js() }}
+        {{ bootstrap.load_js() }}
     {%- endblock body %}
   </body>
 </html>

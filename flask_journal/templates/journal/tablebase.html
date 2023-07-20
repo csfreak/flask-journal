@@ -3,9 +3,11 @@
 {% from 'bootstrap5/pagination.html' import render_pagination %}
 
 {% block styles %}
+{%- if current_user.has_role('manage') -%}
 <style>
     .deleted_record {display: none;}
 </style>
+{%- endif -%}
 {% endblock styles %}
 
 

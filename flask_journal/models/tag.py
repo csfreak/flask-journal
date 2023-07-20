@@ -1,9 +1,7 @@
 import typing as t
 
-from sqlalchemy import (Boolean, ForeignKey, Integer, String, Text,
-                        UniqueConstraint)
-from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
+from sqlalchemy import ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import db
 

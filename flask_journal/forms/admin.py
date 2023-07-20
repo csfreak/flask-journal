@@ -1,8 +1,6 @@
-from datetime import datetime
-
 from flask_wtf import FlaskForm
-from wtforms import (BooleanField, EmailField, FormField, PasswordField,
-                     SelectField, StringField, SubmitField)
+from wtforms import (EmailField, FormField, SelectField, StringField,
+                     SubmitField)
 from wtforms.validators import Length
 
 from ..views.themes import Theme

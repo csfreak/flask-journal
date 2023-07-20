@@ -1,5 +1,3 @@
-from curses import meta
-
 from flask_sqlalchemy import SQLAlchemy
 
 from .base import JournalBaseModel, metadata
