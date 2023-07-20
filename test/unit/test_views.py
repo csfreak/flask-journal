@@ -3,6 +3,7 @@ from copy import deepcopy
 from datetime import datetime
 from unittest import TestCase
 
+import wtforms
 from flask import Flask
 from mock import MagicMock, patch
 from werkzeug.exceptions import HTTPException
@@ -478,19 +479,28 @@ class ViewUtilsFunctionTest(UserAppTestBase):
 
     def test_process_request_id_both(self: t.Self, app: Flask) -> None:
         with app.test_request_context(method='POST', data={'id': '1'}, query_string={'id': '2'}):
-            set_current_user('user1@example.test')
             r_id: int | None = view_utils.process_request_id()
             self.assertIsInstance(r_id, int)
             self.assertEqual(r_id, 1)
 
-    def test_form_submit_action_get(self: t.Self, app: Flask) -> None:
+    def test_form_submit_action_no_submit(self: t.Self, app: Flask) -> None:
         with app.test_request_context(method='GET', data={'id': '1'}):
-            set_current_user('user1@example.test')
             form = CustomForm()
             self.assertRaises(ValueError, view_utils.form_submit_action, form)
 
-    def test_form_submit_action_no_submit(self: t.Self, app: Flask) -> None:
+    def test_form_submit_action_submit_no_button(self: t.Self, app: Flask) -> None:
         with app.test_request_context(method='POST', data={'id': '1'}):
-            set_current_user('user1@example.test')
             form = CustomForm()
             self.assertRaises(ValueError, view_utils.form_submit_action, form)
+
+    def test_form_submit_action(self: t.Self, app: Flask) -> None:
+        class TestForm(CustomForm):
+            custom = wtforms.fields.BooleanField(name='Custom', widget=wtforms.widgets.SubmitInput)
+
+        for action in ['Create', 'Edit', 'Update', 'Delete', 'Undelete', 'Custom']:
+            with self.subTest(action=action):
+                expected: str = action
+                with app.test_request_context(method='POST', data={'id': '1', expected: expected}):
+                    form = TestForm()
+                    r_action: str = view_utils.form_submit_action(form)
+                    self.assertEqual(r_action, expected)
