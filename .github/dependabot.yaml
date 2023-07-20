@@ -12,3 +12,10 @@ updates:
     target-branch: dev
     commit-message:
       prefix: "build(dep): "
+  - package-ecosystem: "pip" # See documentation for possible values
+    directory: "/test/" # Location of package manifests
+    schedule:
+      interval: "weekly"
+    target-branch: dev
+    commit-message:
+      prefix: "test(dep): "

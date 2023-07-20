@@ -4,7 +4,8 @@ __pycache__/
 # Distribution / packaging
 .Python
 dist/
-
+build/
+**.egg-info
 
 # Unit test / coverage reports
 .coverage

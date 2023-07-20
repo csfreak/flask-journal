@@ -17,16 +17,21 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Environment :: Web Environment",
 ]
-dynamic = ["version", "dependencies", "optional-dependencies"]
+dynamic = ["version", "dependencies"]
+
+[project.optional-dependencies]
+deploy = ['gunicorn>=20.0.0']
 
 [project.urls]
 "Homepage" = "https://github.com/csfreak/flask-journal"
 "Bug Tracker" = "https://github.com/csfreak/flask-journal"
 
+[tool.setuptools.packages.find]
+include = ["flask_journal*"]
+
 [tool.setuptools.dynamic]
 version = {file = "VERSION"}
-dependencies = {file = "requirements.txt"}
-optional-dependencies = {file = "extra-requirements.txt"}
+dependencies = {file = ["requirements.txt"]}
 
 [tool.flake8]
 max-line-length = 120
