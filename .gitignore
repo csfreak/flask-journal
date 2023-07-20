@@ -20,4 +20,6 @@ docs/_build/
 # IDE Configs
 .vscode
 
+/templates
 
+*.swp
