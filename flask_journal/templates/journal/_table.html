@@ -1,0 +1,123 @@
+{% from 'base/utils.html' import render_icon, arg_url_for %}
+
+
+{% macro build_url(record, endpoint, url_tuples, model, pk_field) %}
+    {% if model != None %}
+        {% set record = model.query.get(record[pk_field]) %}
+    {% endif %}
+    {% with url_params = {} -%}
+        {%- do url_params.update(request.view_args if not endpoint else {}),
+            url_params.update(request.args if not endpoint else {}) -%}
+            {% for url_parameter, db_field in url_tuples %}
+                {% if db_field.startswith(':') and '.' in db_field %}
+                    {%- set db_field = db_field[1:].split('.') -%}
+                    {%- do url_params.update({url_parameter: record[db_field[0]][db_field[1]]}) -%}
+                {% elif db_field.startswith(':') %}
+                    {%- set db_field = db_field[1:] -%}
+                    {%- do url_params.update({url_parameter: record[db_field]}) -%}
+                {% else %}
+                    {%- do url_params.update({url_parameter: db_field}) -%}
+                {% endif %}
+            {% endfor %}
+        {{ arg_url_for(endpoint, url_params) }}
+    {%- endwith %}
+{%- endmacro %}
+
+{% macro render_table(data,
+                      titles=None,
+                      primary_key='id',
+                      primary_key_title='#',
+                      caption=None,
+                      table_classes=None,
+                      header_classes=None,
+                      responsive=False,
+                      responsive_class='table-responsive',
+                      safe_columns=None,
+                      urlize_columns=None,
+                      endpoint=None) %}
+{% if not titles %}
+    {% set titles = get_table_titles(data, primary_key, primary_key_title) %}
+{% endif %}
+{% if responsive %}
+    <div class="{{ responsive_class }}">
+{% endif %}
+<table class="table{% if table_classes %}{{ ' ' + table_classes }}{% endif %}">
+    {% if caption %}
+    <caption>{{ caption }}</caption>
+    {% endif %}
+    <thead{% if header_classes %} class="{{ header_classes }}"{% endif %}>
+    <tr>
+    {% for title in titles %}
+        <th scope="col"{% if title[2] is defined %} class="col-{{ title[2] }}"{% endif %}>{{ title[1] }}</th>
+    {% endfor %}
+    {%- if current_user.has_role('manage') -%}
+        <th scope="col" class="col-2 deleted_record">Deleted At</th>
+    {%- endif -%}
+    </tr>
+    </thead>
+    <tbody>
+    {% for row in data %}
+    {%- set row_class = "" -%}
+    {%- if row['deleted_at'] is not none -%}
+        {%- set row_class = "deleted_record" -%}
+    {%- endif -%}
+    <tr class="{{ row_class }}" onclick='window.location="{{ url_for(endpoint, id=row[primary_key]) }}"'>
+        {% for title in titles %}
+        {% set key = title[0] %}
+        {% set value = row[key] %}
+        {%- if key == primary_key -%}
+            <th scope="row">
+        {%- else -%}
+            <td>
+        {%- endif -%}
+        {%- if value is string -%}
+            {%- if safe_columns and key in safe_columns -%}
+                {{ value|safe }}
+            {%- else -%}
+                {%- if urlize_columns and key in urlize_columns -%}
+                    {{ value|urlize }}
+                {%- else -%}
+                    {{ value }}
+                {%- endif -%}
+            {%- endif -%}
+        {%- elif value.__class__.__base__.__name__ == 'Enum' -%}
+            {{ value.value }}
+        {%- elif value.__class__.__name__ == 'bool' -%}
+            {%- if value -%}
+            {{ render_icon('check-circle') }}
+            {%- else -%}
+            {{ render_icon('circle') }}
+            {%- endif -%}
+        {%- else -%}
+            {{ value }}
+        {%- endif -%}
+        {%- if key == primary_key -%}
+            </th>
+        {%- else -%}
+            </td>
+        {%- endif -%}
+        {% endfor %}
+        {%- if current_user.has_role('manage') -%}
+            <td class="deleted_record">{{ row['deleted_at'] }}</td>
+        {%- endif -%}
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% if responsive %}
+    </div>
+{% endif %}
+
+{% endmacro %}
+
+
+{% macro render_page_size_selector() %}
+<form method="get" class="form" role="form">
+    <select name="page_size" class="form-select mx-1 text-secondary border-secondary" aria-label="select page size" onchange="this.form.submit()">
+        <option selected>Page Size</option>
+        <option value="10">10</option>
+        <option value="20">20</option>
+        <option value="30">30</option>
+    </select>
+</form>
+{% endmacro %}

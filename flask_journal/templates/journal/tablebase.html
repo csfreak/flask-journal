@@ -1,0 +1,53 @@
+{% extends "journal/base.html" %}
+{% from 'journal/_table.html' import render_table, render_page_size_selector with context %}
+{% from 'bootstrap5/pagination.html' import render_pagination %}
+
+{% block styles %}
+{%- if current_user.has_role('manage') -%}
+<style>
+    .deleted_record {display: none;}
+</style>
+{%- endif -%}
+{% endblock styles %}
+
+
+
+{% block content %}
+<div class="d-flex flex-row-reverse">
+    
+    <button class="btn btn-primary btn-{{ config.BOOTSTRAP_BTN_SIZE }}" onclick="window.location.href='{{url_for(endpoint)}}';">Create</button>
+</div>
+{{ render_table(pagination.items, titles=titles, responsive=True, table_classes="table-striped table-hover", endpoint=endpoint) }}
+<div class="row">
+    <div class="col"></div>
+    <div class="col justify-content-center">
+        {{ render_pagination(pagination, align='center', prev=None, next=None) }}
+    </div>
+    <div class="col d-flex flex-row-reverse">
+        {{ render_page_size_selector() }}
+        {%- if current_user.has_role('manage') -%}
+            <button id="show_deleted" class="btn btn-outline-secondary btn-sm mb-3 mx-1" value="false">Show Deleted</button>
+        {%- endif -%}
+    </div>
+</div>
+
+{%- if current_user.has_role('manage') -%}
+<script>
+    document.getElementById('show_deleted').onclick = function() {
+        console.log("show_deleted clicked")
+        if (this.value == 'false') {
+            this.value = 'true';
+            this.innerHTML = 'Hide Deleted';
+            document.querySelectorAll('tr.deleted_record').forEach((row) => {row.style.display = 'table-row';});
+            document.querySelectorAll('td.deleted_record').forEach((col) => {col.style.display = 'table-cell';});
+            document.querySelectorAll('th.deleted_record').forEach((col) => {col.style.display = 'table-cell';});
+
+        } else {
+            this.value = 'false';
+            this.innerHTML = 'Show Deleted';
+            document.querySelectorAll('.deleted_record').forEach((item) => {item.style.display = 'none';});
+        };
+    };
+</script>
+{%- endif -%}
+{% endblock content %}
