@@ -23,7 +23,7 @@ def create_app(c: Config | None = None) -> Flask:
     from .views import init_views
     init_views(app)
 
-    if app.config.get('IS_GUNICORN'):
+    if app.config.get('IS_GUNICORN'):  # pragma: no cover
         app.wsgi_app = ProxyFix(app.wsgi_app, x_for=2,
                                 x_port=1, x_proto=1, x_host=1)
 

@@ -1,9 +1,10 @@
-import logging
 import os
 import typing as t
 from datetime import timedelta
 
 from flask import Flask
+
+from .logging import init_logging
 
 
 class DefaultConfig(object):
@@ -108,6 +109,8 @@ def init_config(app: Flask, c: Config | None) -> None:
     set_debug_opts(app)
     set_env_opts(app)
 
+    init_logging(app)
+
     for k, v in app.config.items():
         app.logger.debug("Setting %s has %s", k, v)
 
@@ -118,7 +121,6 @@ def set_debug_opts(app: Flask) -> None:
     app.config['EXPLAIN_TEMPLATE_LOADING'] = False
     app.config['SQLALCHEMY_ECHO'] = True
     app.config['TEMPLATES_AUTO_RELOAD'] = True
-    logging.getLogger().setLevel(logging.DEBUG)
 
 
 def set_env_opts(app: Flask) -> None:
