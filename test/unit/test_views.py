@@ -5,6 +5,7 @@ from unittest import TestCase
 
 import wtforms
 from flask import Flask
+from flask_security import current_user
 from mock import MagicMock, patch
 from werkzeug.exceptions import HTTPException
 
@@ -504,3 +505,51 @@ class ViewUtilsFunctionTest(UserAppTestBase):
                     form = TestForm()
                     r_action: str = view_utils.form_submit_action(form)
                     self.assertEqual(r_action, expected)
+
+    def test_build_query_user_no_filters(self: t.Self, app: Flask) -> None:
+        model_class = MagicMock(name='JournalBaseModelMock')
+        with app.test_request_context():
+            set_current_user('user3@example.test')
+            r_query = view_utils.build_query(model_class)
+            self.assertIsInstance(r_query, MagicMock)
+            model_class.query.filter_by.assert_called_once_with(user=current_user)
+            model_class.query.filter_by.return_value.execution_options.assert_called_once_with(include_deleted=False)
+
+    def test_build_query_user_manage(self: t.Self, app: Flask) -> None:
+        model_class = MagicMock(name='JournalBaseModelMock')
+        with app.test_request_context():
+            set_current_user('user2@example.test')
+            r_query = view_utils.build_query(model_class)
+            self.assertIsInstance(r_query, MagicMock)
+            model_class.query.filter_by.assert_called_once_with(user=current_user)
+            model_class.query.filter_by.return_value.execution_options.assert_called_once_with(include_deleted=True)
+
+    def test_build_query_user_filters(self: t.Self, app: Flask) -> None:
+        model_class = MagicMock(name='JournalBaseModelMock')
+        with app.test_request_context():
+            set_current_user('user3@example.test')
+            r_query = view_utils.build_query(model_class, filters={'id': 1})
+            self.assertIsInstance(r_query, MagicMock)
+            model_class.query.filter_by.assert_called_once_with(id=1)
+            model_class.query.filter_by.return_value.filter_by.assert_called_once_with(user=current_user)
+            model_class.query.filter_by.return_value.filter_by.return_value.execution_options.assert_called_once_with(
+                include_deleted=False)
+
+    def test_build_query_no_user_admin(self: t.Self, app: Flask) -> None:
+        model_class = MagicMock(name='JournalBaseModelMock')
+        del model_class.user
+        with app.test_request_context():
+            set_current_user('user1@example.test')
+            r_query = view_utils.build_query(model_class)
+            self.assertIsInstance(r_query, MagicMock)
+            model_class.query.filter_by.assert_not_called()
+            model_class.query.execution_options.assert_called_once_with(include_deleted=False)
+
+    def test_build_query_no_user_no_admin(self: t.Self, app: Flask) -> None:
+        model_class = MagicMock(name='JournalBaseModelMock')
+        model_class.configure_mock(__name__='JournalBaseModelMock')
+        del model_class.user
+        with app.test_request_context():
+            set_current_user('user3@example.test')
+            self.assertRaises(HTTPException, view_utils.build_query, model_class)
+            model_class.query.filter_by.assert_not_called()

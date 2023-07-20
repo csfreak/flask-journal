@@ -1,7 +1,7 @@
 
 import typing as t
 
-from flask import flash, redirect, request
+from flask import abort, flash, request
 from flask_security import current_user
 from flask_sqlalchemy.query import Query
 from wtforms.fields import SubmitField
@@ -29,8 +29,8 @@ def build_query(model: JournalBaseModel, filters: dict[str, t.Any] | None = None
     if hasattr(model, 'user'):
         query = query.filter_by(user=current_user)
     elif not current_user.has_role('admin'):  # pyright: ignore
-        flash(f"Unable to Access Resource {model}")
-        return redirect('.index')
+        flash(f"Unable to Access Resource {model.__name__}")
+        return abort(403)
     query = query.execution_options(
         include_deleted=include_deleted)
 

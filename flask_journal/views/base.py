@@ -94,22 +94,11 @@ def table_view(model: JournalBaseModel,
                titles: list[tuple[str, str, int]] | None = None,
                order_field: str = 'created_at',
                descending: bool = False,
-               include_deleted: bool | None = None,
                endpoint: str = '') -> werkzeugResponse | str:
     page = request.args.get('page', 1, type=int)
     page_size = request.args.get('page_size', 10, type=int)
 
-    if include_deleted is None:
-        include_deleted = True if current_user.has_role(  # pyright: ignore
-            'manage') else False
-
-    query: Query = model.query
-    if hasattr(model, 'user'):
-        query = query.filter_by(user=current_user)
-    elif not current_user.has_role('admin'):  # pyright: ignore
-        flash(f"Unable to Access Resource {model}")
-        return redirect('.index')
-    query: Query = query.execution_options(include_deleted=include_deleted)
+    query: Query = utils.build_query(model)
 
     if order_field and hasattr(model, order_field):
         order_attr: QueryableAttribute = getattr(model, order_field)
