@@ -26,7 +26,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install .[dev,test]
+          pip install .[test]
 
       - name: Setup flake8 annotations
         uses: rbialon/flake8-annotations@v1
@@ -34,10 +34,16 @@ jobs:
         run: |
           # stop the build if there are Python syntax errors or undefined names
           flake8 . --count --show-source --statistics
-      - name: UnitTests
+      - name: Tests
         run: |
-          coverage run
-          coverage report
+          py.test
+
+      - name: Pytest coverage comment
+        uses: MishaKav/pytest-coverage-comment@main
+        with:
+          pytest-xml-coverage-path: .coverage.xml
+          junitxml-path: ./pytest.xml
+
       - name: GetVersion
         id: get_version
         run: |

@@ -22,9 +22,6 @@ def init_logging(app: Flask) -> None:
         }
     }
 
-    if app.testing:
-        logging_config['root']['level'] = 'ERROR'
-
     if app.debug:
         logging_config['root']['level'] = 'DEBUG'
         logging_config.update({

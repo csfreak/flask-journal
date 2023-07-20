@@ -1,7 +1,8 @@
 from enum import StrEnum, auto
 
-from flask import Markup, current_app, url_for
+from flask import current_app, url_for
 from flask_login import current_user
+from markupsafe import Markup
 
 
 class Theme(StrEnum):

@@ -1,20 +1,22 @@
-Flask >= 2.3.2
+Flask >= 2.3.2 <2.4
 
 # DB Packages
-Flask-SQLAlchemy >= 3.0.5
-SQLAlchemy >= 2.0.0
-alembic >= 1.11.0
-flask-migrate >= 4.0.4
+Flask-SQLAlchemy >= 3.0.5 <4.0
+SQLAlchemy >= 2.0.0 <2.1
+alembic >= 1.11.0 <1.12
+flask-migrate >= 4.0.4 <5
 sqlalchemy_easy_softdelete >= 0.8.2
-PyMySQ >= 1.1.0
+PyMySQL >= 1.1.0
 
 # Security Packages
-Flask-Security-Too >= 5.2.0
+Flask-Security-Too >= 5.2.0 <6
 argon2-cffi >= 21.3
-flask-mailman >= 0.3.0
+flask-mailman >= 0.3.0 < 0.4.0
 
 # Metrics
 prometheus-flask-exporter >= 0.22.0
 
 # UI
 bootstrap-flask >= 2.2.0
+wtforms >= 3.0.0 
+Flask-WTF >= 1.1.1 < 1.2

@@ -1,7 +1,7 @@
 import typing as t
 from datetime import datetime
 
-from flask_sqlalchemy import Model
+from flask_sqlalchemy.model import Model
 from sqlalchemy import DateTime, Integer, sql
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column

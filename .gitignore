@@ -9,6 +9,8 @@ dist/
 # Unit test / coverage reports
 .coverage
 .coverage.lcov
+.coverage.xml
+.pytest.xml
 
 # Sphinx documentation
 docs/_build/
@@ -20,6 +22,8 @@ docs/_build/
 # IDE Configs
 .vscode
 
+# Template Symlinks
 /templates
 
+# Temp Files
 *.swp
