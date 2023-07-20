@@ -62,7 +62,7 @@ omit = [
 [tool.coverage.report]
 show_missing = true
 skip_empty = true
-fail_under = 85
+fail_under = 90
 
 [tool.coverage.lcov]
 output = '.coverage.lcov'
