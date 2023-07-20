@@ -8,13 +8,16 @@ dist/
 
 # Unit test / coverage reports
 .coverage
-
+.coverage.lcov
 
 # Sphinx documentation
 docs/_build/
 
 # Environments
 .venv
+.env
 
 # IDE Configs
 .vscode
+
+
