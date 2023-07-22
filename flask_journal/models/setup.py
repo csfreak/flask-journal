@@ -1,3 +1,4 @@
+import logging
 
 from flask import Flask
 
@@ -10,12 +11,14 @@ roles = {
     'user': {'description': "Basic User: all users have this role"}
 }
 
+logger = logging.getLogger(__name__)
+
 
 def init_roles(app: Flask) -> None:
     with app.app_context():
         for name, role in roles.items():
             if Role.query.filter_by(name=name).first() is None:
-                app.logger.getChild(__name__).info(f"Created new role: {name}")
+                logger.info(f"Created new role: {name}")
                 db.session.add(Role(name=name, **role))
         db.session.commit()
 

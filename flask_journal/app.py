@@ -7,7 +7,7 @@ from .config import Config, init_config
 
 
 def create_app(c: Config | None = None) -> Flask:
-    app: Flask = Flask('flask-journal',
+    app: Flask = Flask('flask_journal',
                        root_path=os.getenv('FLASK_ROOT_PATH', None))
     init_config(app, c)
 
