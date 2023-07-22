@@ -1,10 +1,13 @@
 import os
 import typing as t
 from datetime import timedelta
+from logging import getLogger
 
 from flask import Flask
 
 from .logging import init_logging
+
+logger = getLogger(__name__)
 
 
 class DefaultConfig(object):
@@ -112,7 +115,7 @@ def init_config(app: Flask, c: Config | None) -> None:
     init_logging(app)
 
     for k, v in app.config.items():
-        app.logger.debug("Setting %s has %s", k, v)
+        logger.debug("Setting %s has %s", k, v)
 
 
 def set_debug_opts(app: Flask) -> None:
