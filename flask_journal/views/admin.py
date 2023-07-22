@@ -1,9 +1,9 @@
-
 from flask_login import login_required
 from flask_security.decorators import roles_required
 
 from ..forms import RoleForm, UserForm
 from ..models import Role, User
+from ..security.utils import get_random_pw_hash
 from . import bp, werkzeugResponse
 from .base import form_view, table_view
 
@@ -29,7 +29,8 @@ def user() -> werkzeugResponse | str:
     return form_view(model=User,
                      form_class=UserForm,
                      primary_fields=['Email', 'Roles', 'Tracking', 'Settings'],
-                     table_view='.users')
+                     table_view='.users',
+                     defaults={'password': get_random_pw_hash()})
 
 
 @bp.route('/roles')

@@ -99,5 +99,14 @@ html_test_strings = {
             'generic': b'<li class="fs-error-msg">Authentication failed - identity or password/passcode invalid</li>',
             'email_confirm': b'<li class="fs-error-msg">Email requires confirmation.</li>',
         }
+    },
+    'form': {
+        'created_at': b'<input class="form-control-plaintext  ms-auto" id="Created At" name="Created At" readonly="" type="text" value="%s">',
+        'updated_at': b'<input class="form-control-plaintext  ms-auto" id="Created At" name="Created At" readonly="" type="text" value="%s">',
+        'confirmed_at': b'<input class="form-control-plaintext  ms-auto" id="Created At" name="Created At" readonly="" type="text" value="%s">',
+        'deleted_at': b'<input class="form-control-plaintext  ms-auto" id="Created At" name="Created At" readonly="" type="text" value="%s">',
+        'id': b'<input id="id" name="id" type="hidden" value="%d">',
+        'roles': b'<input class="form-control form-control-plaintext" id="Roles" name="Roles" readonly type="text" value="%s">',
+        'error': b'<div class="invalid-feedback d-block">%s</div>',
     }
 }

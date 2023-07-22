@@ -1,10 +1,10 @@
 import typing as t
 
-from flask import flash
 from flask_login import current_user
-from wtforms import DateTimeField, StringField
+from wtforms import DateTimeField, Form, FormField, StringField
+from wtforms.validators import ValidationError
 
-from ..models import Role, Tag, db
+from ..models import Role, Tag, User, UserSettings, db
 from .widgets import PlainTextWidget
 
 
@@ -16,6 +16,9 @@ class DisplayDateTimeField(DateTimeField):
 
     def populate_obj(self: t.Self, *args: t.Any, **kwargs: t.Any) -> None:
         pass
+
+    def validate(self: t.Self, *args: t.Any, **kwargs: t.Any) -> None:
+        return True
 
     def _value(self: t.Self) -> str:
         return self.data and self.data.strftime(self.format[0]) or ""
@@ -29,6 +32,9 @@ class DisplayStringField(StringField):
 
     def populate_obj(self: t.Self, *args: t.Any, **kwargs: t.Any) -> None:
         pass
+
+    def validate(self: t.Self, *args: t.Any, **kwargs: t.Any) -> None:
+        return True
 
 
 class TagField(StringField):
@@ -57,9 +63,38 @@ class RoleField(StringField):
                 if role.strip() == '':
                     continue
                 obj = Role.query.filter_by(name=role).first()
-                if not obj:
-                    flash(f"Invalid Role {role}")
-                self.data.append(obj)
+                if obj is not None:
+                    self.data.append(obj)
 
     def _value(self: t.Self) -> str:
         return " ".join([role.name for role in self.data]) if self.data is not None else ""
+
+    def pre_validate(self: t.Self, form: Form) -> None:
+        raw_role_names = self.raw_data[0].split(' ')
+        processed_role_names = [role.name for role in self.data]
+        invalid_role_names = []
+        for raw_name in raw_role_names:
+            if raw_name not in processed_role_names:
+                invalid_role_names.append(raw_name)
+        if len(invalid_role_names) != 0:
+            raise ValidationError("invalid role(s): %s" % ' '.join(invalid_role_names))
+
+
+class UserSettingsField(FormField):
+    def populate_obj(self: t.Self, obj: User, name: str) -> None:
+        candidate = getattr(obj, name, None)
+        if candidate is None:
+            if self._obj is None:
+                candidate = UserSettings(user=obj)
+            else:
+                candidate = self._obj
+        self.form.populate_obj(candidate)
+        setattr(obj, name, candidate)
+
+
+class ReadOnlyFormField(FormField):
+    def validate(self: t.Self, *args: t.Any, **kwargs: t.Any) -> None:
+        return True
+
+    def populate_obj(self: t.Self, *args: t.Any, **kwargs: t.Any) -> None:
+        pass

@@ -1,6 +1,6 @@
 from enum import StrEnum, auto
 
-from flask import current_app, url_for
+from flask import current_app
 from flask_login import current_user
 from markupsafe import Markup
 
@@ -34,7 +34,7 @@ class Theme(StrEnum):
     zephyr = auto()
 
 
-def load_theme(version: str | None = None, bootstrap_sri: str | None = None) -> Markup:
+def load_theme() -> Markup:
     """Load Bootstrap's css resources with given version.
 
     .. versionadded:: 0.1.0
@@ -44,7 +44,6 @@ def load_theme(version: str | None = None, bootstrap_sri: str | None = None) -> 
     bs = current_app.extensions['bootstrap']
     CDN_BASE = 'https://cdn.jsdelivr.net/npm'
 
-    serve_local = current_app.config['BOOTSTRAP_SERVE_LOCAL']
     bootswatch_theme = current_user.settings.theme \
         if current_user and \
         current_user.is_authenticated and \
@@ -52,26 +51,10 @@ def load_theme(version: str | None = None, bootstrap_sri: str | None = None) -> 
         current_user.settings.theme != 'default' \
         else current_app.config['BOOTSTRAP_BOOTSWATCH_THEME']
 
-    if version is None:
-        version = bs.bootstrap_version
-    bootstrap_sri = bs._get_sri('bootstrap_css', version, bootstrap_sri)
+    version = bs.bootstrap_version
+    base_path = f'{CDN_BASE}/bootswatch@{version}/dist/{bootswatch_theme.lower()}' \
+        if bootswatch_theme else f'{CDN_BASE}/bootstrap@{version}/dist/css'
 
-    if serve_local:
-        if not bootswatch_theme:
-            base_path = 'css'
-        else:
-            base_path = f'css/bootswatch/{bootswatch_theme.lower()}'
-        boostrap_url = url_for(
-            'bootstrap.static', filename=f'{base_path}/{bs.bootstrap_css_filename}')
-    else:
-        if not bootswatch_theme:
-            base_path = f'{CDN_BASE}/bootstrap@{version}/dist/css'
-        else:
-            base_path = f'{CDN_BASE}/bootswatch@{version}/dist/{bootswatch_theme.lower()}'
-        boostrap_url = f'{base_path}/{bs.bootstrap_css_filename}'
+    bootstrap_url = f'{base_path}/{bs.bootstrap_css_filename}'
 
-    if bootstrap_sri and not bootswatch_theme:
-        css = f'<link rel="stylesheet" href="{boostrap_url}" integrity="{bootstrap_sri}" crossorigin="anonymous">'
-    else:
-        css = f'<link rel="stylesheet" href="{boostrap_url}">'
-    return Markup(css)
+    return Markup(f'<link rel="stylesheet" href="{bootstrap_url}">')

@@ -15,7 +15,6 @@ from flask_journal.security.signals import user_init
 
 from ..base import AppTestBase, security_config
 from ..config import html_test_strings
-from ..utils import authenticate
 
 # from fakeredis import FakeStrictRedis
 # from flask_redis import Redis as FlaskRedis

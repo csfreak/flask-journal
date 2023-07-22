@@ -56,12 +56,82 @@ class UserViewClientTest(AppClientTestBase):
         self.assertStatus(rv, 200)
         self.assertInResponse(html_test_strings['title'] % b'View User', rv)
 
-    def test_user_create_view_admin(self: t.Self, app: Flask, client: FlaskClient) -> None:
+    def test_user_view_admin_create(self: t.Self, app: Flask, client: FlaskClient) -> None:
         email = 'user1@example.test'
         authenticate(client, email)
         rv = client.get('/user')
         self.assertStatus(rv, 200)
         self.assertInResponse(html_test_strings['title'] % b'New User', rv)
+
+    def test_user_view_post_create(self: t.Self, app: Flask, client: FlaskClient) -> None:
+        email = 'user1@example.test'
+        authenticate(client, email)
+        rv = client.post('/user', data={
+            'Email': 'testuser@example.test',
+            'Roles': 'user',
+            'Create': 'Create'
+        })
+        self.assertStatus(rv, 200)
+        self.assertInResponse(html_test_strings['title'] % b'View User', rv)
+        self.assertInResponse(html_test_strings['form']['roles'] % b'user', rv)
+
+    def test_user_view_post_update_role(self: t.Self, app: Flask, client: FlaskClient) -> None:
+        email = 'user1@example.test'
+        authenticate(client, email)
+        rv = client.post('/user', data={
+            'id': 3,
+            'Email': 'user3@example.test',
+            'Roles': '',
+            'Update': 'Update'
+        })
+        self.assertStatus(rv, 200)
+        self.assertInResponse(html_test_strings['title'] % b'View User', rv)
+        self.assertInResponse(html_test_strings['form']['id'] % 3, rv)
+        self.assertInResponse(html_test_strings['form']['roles'] % b'', rv)
+
+    def test_user_view_post_invalid_role(self: t.Self, app: Flask, client: FlaskClient) -> None:
+        email = 'user1@example.test'
+        authenticate(client, email)
+        rv = client.post('/user', data={
+            'id': 3,
+            'Email': 'user3@example.test',
+            'Roles': 'user non-role',
+            'Update': 'Update'
+        })
+        self.assertStatus(rv, 200)
+        self.assertInResponse(html_test_strings['title'] % b'View User', rv)
+        self.assertInResponse(html_test_strings['form']['id'] % 3, rv)
+        self.assertInResponse(html_test_strings['form']['error'] % b'invalid role(s): non-role', rv)
+
+
+class RoleViewClientTest(AppClientTestBase):
+    def test_roles_view_admin(self: t.Self, app: Flask, client: FlaskClient) -> None:
+        email = 'user1@example.test'
+        authenticate(client, email)
+        rv = client.get('/roles')
+        self.assertStatus(rv, 200)
+        self.assertInResponse(html_test_strings['title'] % b'Roles', rv)
+
+    def test_roles_view_manage(self: t.Self, app: Flask, client: FlaskClient) -> None:
+        email = 'user2@example.test'
+        authenticate(client, email)
+        rv = client.get('/roles')
+        self.assertStatus(rv, 403)
+        self.assertInResponse(html_test_strings['title'] % b'Error', rv)
+
+    def test_role_view_admin(self: t.Self, app: Flask, client: FlaskClient) -> None:
+        email = 'user1@example.test'
+        authenticate(client, email)
+        rv = client.get('/role?id=1')
+        self.assertStatus(rv, 200)
+        self.assertInResponse(html_test_strings['title'] % b'View Role', rv)
+
+    def test_role_create_view_admin(self: t.Self, app: Flask, client: FlaskClient) -> None:
+        email = 'user1@example.test'
+        authenticate(client, email)
+        rv = client.get('/role')
+        self.assertStatus(rv, 200)
+        self.assertInResponse(html_test_strings['title'] % b'New Role', rv)
 
 
 class TagViewClientTest(AppClientTestBase):
@@ -205,8 +275,30 @@ class TagViewClientTest(AppClientTestBase):
         rv = client.post('/tag?id=%i' % tag.id, data={'Update': 'Update', 'Name': 'tag2'})
         self.assertStatus(rv, 200)
         self.assertInResponse(html_test_strings['title'] % b'View Tag', rv)
-
         self.assertIsNotNone(tag.updated_at)
+        self.assertEqual(tag.name, 'tag2')
+
+    def test_tag_view_user_update_ignore_ro(self: t.Self, app: Flask, client: FlaskClient) -> None:
+        email = 'user3@example.test'
+        tag = models.Tag(name='tag', user_id=3)
+        models.db.session.add(tag)
+        models.db.session.commit()
+        authenticate(client, email)
+        self.assertIsNone(tag.updated_at)
+        expected_create = tag.created_at
+        expected_name = 'tag2'
+        rv = client.post(
+            '/tag?id=%i' %
+            tag.id,
+            data={
+                'Update': 'Update',
+                'Name': expected_name,
+                'Created At': 'abaddatevalue'})
+        self.assertStatus(rv, 200)
+        self.assertInResponse(html_test_strings['title'] % b'View Tag', rv)
+        self.assertIsNotNone(tag.updated_at)
+        self.assertEqual(tag.name, expected_name)
+        self.assertEqual(tag.created_at, expected_create)
 
     def test_tag_view_user_update_others_tag(self: t.Self, app: Flask, client: FlaskClient) -> None:
         email = 'user3@example.test'
