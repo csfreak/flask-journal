@@ -1,3 +1,4 @@
+import logging
 import typing as t
 
 from flask_login import current_user
@@ -6,6 +7,8 @@ from wtforms.validators import ValidationError
 
 from ..models import Role, Tag, User, UserSettings, db
 from .widgets import PlainTextWidget
+
+logger = logging.getLogger(__name__)
 
 
 class DisplayDateTimeField(DateTimeField):
@@ -74,9 +77,11 @@ class RoleField(StringField):
         processed_role_names = [role.name for role in self.data]
         invalid_role_names = []
         for raw_name in raw_role_names:
-            if raw_name not in processed_role_names:
+            if raw_name and raw_name not in processed_role_names:
                 invalid_role_names.append(raw_name)
         if len(invalid_role_names) != 0:
+            logger.error("found invalid role(s): %s", ' '.join(invalid_role_names))
+            logger.debug("comparing %s to %s", raw_role_names, processed_role_names)
             raise ValidationError("invalid role(s): %s" % ' '.join(invalid_role_names))
 
 

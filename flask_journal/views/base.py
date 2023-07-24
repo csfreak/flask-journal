@@ -57,8 +57,8 @@ def form_view(
     category: str = 'message'
     if form.validate_on_submit():
         logger.debug("form submit validated with data %s", form.data)
-        match form:
-            case create if id is None:
+        match utils.form_submit_action(form):
+            case 'Create' if id is None:
                 if defaults is None:
                     defaults = dict()
                 if hasattr(model, 'user'):
@@ -70,29 +70,29 @@ def form_view(
                 form.process(obj=obj)
                 id = obj.id
                 message = f"{message} Created"
-            case update if obj:
+            case 'Update' if obj:
                 form.populate_obj(obj)
                 db.session.add(obj)
                 db.session.commit()
                 form.process(obj=obj)
                 message = f"{message} Updated"
-            case edit if obj:
+            case 'Edit' if obj:
                 context['action'] = 'edit'
-            case delete if obj:
+            case 'Delete' if obj:
                 obj.delete()
                 db.session.add(obj)
                 db.session.commit()
                 flash(f"{message} Deleted")
                 return redirect(url_for(table_view))
-            case undelete if obj and current_user.has_role('manage'):
+            case 'Undelete' if obj and current_user.has_role('manage'):
                 obj.undelete()
                 db.session.add(obj)
                 db.session.commit()
                 form.process(obj=obj)
                 message = f"{message} Restored"
                 category = 'warning'
-            case _:
-                message = f"Unable to Process {message}"
+            case form_action:
+                message = f"Unable to {form_action} {message}"
                 category = 'error'
 
     if id is None:

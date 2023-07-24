@@ -60,14 +60,14 @@ def form_submit_action(form: CustomForm) -> str:
     # Check for SubmitFields
     for field in form:
         if isinstance(field, SubmitField) and field.data:
-            logger.debug("form SubmitField %s found", field.name)
+            logger.debug("field SubmitField.%s found", field.name)
             return field.name
 
     # Finding Other Fields if not SubmitField found
     for field in form:
         if hasattr(field.widget, 'input_type') and \
                 field.widget.input_type == 'submit' and field.data:
-            logger.debug("form %s %s found", field.type, field.name)
+            logger.debug("field %s.%s found", field.type, field.name)
             return field.name
 
     logger.error("form wasn't submitted with a Field: %s" % form.__name__)

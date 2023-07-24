@@ -77,7 +77,6 @@ class UserAppTestBase(AppTestBase):
             pbad, pnorm = security._password_util.validate(
                 user['password'], True)
 
-            app.logger.info("creating user %s" % enorm)
             security.datastore.create_user(
                 email=enorm,
                 password=pnorm,
