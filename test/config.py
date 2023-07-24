@@ -126,8 +126,8 @@ html_test_strings = {
         'selected': '<option selected value="%s">%s</option>',
         'option': '<option value="%s">%s</option>',
         'css': {
-            'default': '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css">',
-            'bootswatch': '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.2.2/dist/%s/bootstrap.min.css">'
+            'default': '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">',
+            'bootswatch': '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/%s/bootstrap.min.css">'
         }
     }
 
