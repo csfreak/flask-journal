@@ -1,4 +1,3 @@
-
 from flask import Response, flash, render_template
 from flask_login import current_user, login_required
 
@@ -8,7 +7,7 @@ from . import bp
 from .themes import Theme
 
 
-@bp.route('/settings', methods=['GET', 'POST'])
+@bp.route("/settings", methods=["GET", "POST"])
 @login_required
 def settings() -> Response | str:
     settings = UserSettings.query.filter_by(user=current_user).first()
@@ -20,4 +19,6 @@ def settings() -> Response | str:
         db.session.commit()
         flash("Settings Updated Successfully")
 
-    return render_template('journal/settings.html', form=form, themes=list(Theme), title="Settings")
+    return render_template(
+        "journal/settings.html", form=form, themes=list(Theme), title="Settings"
+    )

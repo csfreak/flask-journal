@@ -4,7 +4,7 @@ from werkzeug.exceptions import HTTPException
 
 def handle_exception(e: HTTPException) -> str:
     current_app.logger.error(e)
-    return render_template('error/generic.html', e=e), e.code
+    return render_template("error/generic.html", e=e), e.code
 
 
 def init_errors(app: Flask) -> None:

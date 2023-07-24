@@ -28,12 +28,14 @@ class CustomForm(FlaskForm):
 
     def populate_obj(self: t.Self, obj: JournalBaseModel) -> None:
         for name, field in self._fields.items():
-            if name not in obj.immutable_attrs and field.type != 'SubmitField':
+            if name not in obj.immutable_attrs and field.type != "SubmitField":
                 field.populate_obj(obj, name)
         db.session.add(obj)
         db.session.commit()
 
-    def validate_on_submit(self: t.Self, extra_validators: dict[str, t.Callable] | None = None) -> bool:
+    def validate_on_submit(
+        self: t.Self, extra_validators: dict[str, t.Callable] | None = None
+    ) -> bool:
         """Call :meth:`validate` only if the form is submitted.
         This is a shortcut for ``form.is_submitted() and form.validate()``.
 

@@ -6,9 +6,9 @@ from .db import db
 from .rbac import Role
 
 roles = {
-    'admin': {'description': "Administrator: allows user management"},
-    'manage': {'description': "Power User: can undelete their own records"},
-    'user': {'description': "Basic User: all users have this role"}
+    "admin": {"description": "Administrator: allows user management"},
+    "manage": {"description": "Power User: can undelete their own records"},
+    "user": {"description": "Basic User: all users have this role"},
 }
 
 logger = logging.getLogger(__name__)

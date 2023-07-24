@@ -11,12 +11,8 @@ class Role(db.Model, RoleMixin):
 
 
 class RolesUsers(db.Model):
-    __tablename__ = 'roles_users'
-    __table_args__ = (
-        UniqueConstraint("user_id", "role_id"),
-    )
+    __tablename__ = "roles_users"
+    __table_args__ = (UniqueConstraint("user_id", "role_id"),)
 
-    user_id: Mapped[int] = mapped_column(
-        'user_id', Integer(), ForeignKey('user.id'))
-    role_id: Mapped[int] = mapped_column(
-        'role_id', Integer(), ForeignKey('role.id'))
+    user_id: Mapped[int] = mapped_column("user_id", Integer(), ForeignKey("user.id"))
+    role_id: Mapped[int] = mapped_column("role_id", Integer(), ForeignKey("role.id"))
