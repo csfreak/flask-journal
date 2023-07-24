@@ -17,6 +17,6 @@ flask-mailman >=0.3.0,< 0.4.0
 prometheus-flask-exporter >=0.22.0
 
 # UI
-bootstrap-flask >=2.2.0
+bootstrap-flask ==2.3.0
 wtforms >=3.0.0 
 Flask-WTF >=1.1.1,< 1.2
