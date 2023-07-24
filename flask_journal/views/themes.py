@@ -41,20 +41,25 @@ def load_theme() -> Markup:
 
     :param version: The version of Bootstrap.
     """
-    bs = current_app.extensions['bootstrap']
-    CDN_BASE = 'https://cdn.jsdelivr.net/npm'
+    bs = current_app.extensions["bootstrap"]
+    CDN_BASE = "https://cdn.jsdelivr.net/npm"
 
-    bootswatch_theme = current_user.settings.theme \
-        if current_user and \
-        current_user.is_authenticated and \
-        current_user.settings and \
-        current_user.settings.theme != 'default' \
-        else current_app.config['BOOTSTRAP_BOOTSWATCH_THEME']
+    bootswatch_theme = (
+        current_user.settings.theme
+        if current_user
+        and current_user.is_authenticated
+        and current_user.settings
+        and current_user.settings.theme != "default"
+        else current_app.config["BOOTSTRAP_BOOTSWATCH_THEME"]
+    )
 
     version = bs.bootstrap_version
-    base_path = f'{CDN_BASE}/bootswatch@{version}/dist/{bootswatch_theme.lower()}' \
-        if bootswatch_theme else f'{CDN_BASE}/bootstrap@{version}/dist/css'
+    base_path = (
+        f"{CDN_BASE}/bootswatch@{version}/dist/{bootswatch_theme.lower()}"
+        if bootswatch_theme
+        else f"{CDN_BASE}/bootstrap@{version}/dist/css"
+    )
 
-    bootstrap_url = f'{base_path}/{bs.bootstrap_css_filename}'
+    bootstrap_url = f"{base_path}/{bs.bootstrap_css_filename}"
 
     return Markup(f'<link rel="stylesheet" href="{bootstrap_url}">')

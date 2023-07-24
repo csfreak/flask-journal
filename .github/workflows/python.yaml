@@ -32,12 +32,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r test/requirements.txt
+      - uses: psf/black@stable
+        with:
+          options: --check --verbose --color
       - name: Setup flake8 annotations
         uses: rbialon/flake8-annotations@v1
       - name: Lint with flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names
           flake8 . --count --show-source --statistics
+      - name: Check imports with isort
+        run: |
+          isort -c --diff .
   test:
     runs-on: ubuntu-latest
     name: Run pytest and report test coverage
@@ -85,10 +91,20 @@ jobs:
           cache-dependency-path: |
             requirements.txt
             test/requirements.txt
-      - name: GetVersion
-        id: get_version
+      - name: Semantic Release
+        id: release_version
+        uses: go-semantic-release/action@v1.21.0
+        with:
+          github-token: ${{ github.token }}
+          allow-initial-development-versions: true
+          force-bump-patch-version: true
+          prerelease: true
+          dry: true
+      - name: SetVersion
+        id: version
         run: |
-          echo "version=$(cat VERSION)" >> "$GITHUB_OUTPUT"
+          version=${{ steps.release_version.outputs.version }}
+          echo $version > VERSION
       - name: Buildah
         uses: redhat-actions/buildah-build@v2
         with:

@@ -89,12 +89,11 @@ class DefaultConfig(object):
 
 
 class Config(DefaultConfig):
-
-    def __init__(self: t.Self,
-                 mapping: t.Mapping[str, t.Any] | None = None,
-                 **kwargs: t.Any) -> None:
+    def __init__(
+        self: t.Self, mapping: t.Mapping[str, t.Any] | None = None, **kwargs: t.Any
+    ) -> None:
         super().__init__()
-        self.IS_GUNICORN = bool(os.getenv('IS_GUNICORN', False))
+        self.IS_GUNICORN = bool(os.getenv("IS_GUNICORN", False))
         if mapping:
             self._load_mapping(mapping)
         self._load_mapping(kwargs)
@@ -121,9 +120,9 @@ def init_config(app: Flask, c: Config | None) -> None:
 def set_debug_opts(app: Flask) -> None:
     if not app.debug:
         return
-    app.config['EXPLAIN_TEMPLATE_LOADING'] = False
-    app.config['SQLALCHEMY_ECHO'] = True
-    app.config['TEMPLATES_AUTO_RELOAD'] = True
+    app.config["EXPLAIN_TEMPLATE_LOADING"] = False
+    app.config["SQLALCHEMY_ECHO"] = True
+    app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 
 def set_env_opts(app: Flask) -> None:

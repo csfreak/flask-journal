@@ -4,8 +4,13 @@ from wtforms.validators import Length
 
 from ..views.themes import Theme
 from .base import CustomForm, UnmanagedForm
-from .fields import (DisplayDateTimeField, DisplayStringField,
-                     ReadOnlyFormField, RoleField, UserSettingsField)
+from .fields import (
+    DisplayDateTimeField,
+    DisplayStringField,
+    ReadOnlyFormField,
+    RoleField,
+    UserSettingsField,
+)
 
 
 class UserTrackingForm(UnmanagedForm):
@@ -13,11 +18,11 @@ class UserTrackingForm(UnmanagedForm):
     last_login_ip = DisplayStringField(name="Last Login IP")
     current_login_at = DisplayDateTimeField(name="Current Login At")
     current_login_ip = DisplayStringField(name="Current Login IP")
-    login_count = DisplayStringField(name='Login Count')
+    login_count = DisplayStringField(name="Login Count")
 
 
 class UserSettingsSubForm(FlaskForm):
-    theme = SelectField(name="Theme", choices=list(Theme), default='default')
+    theme = SelectField(name="Theme", choices=list(Theme), default="default")
 
 
 class UserSettingsForm(UserSettingsSubForm):
@@ -27,10 +32,11 @@ class UserSettingsForm(UserSettingsSubForm):
 class UserForm(CustomForm):
     email = EmailField(name="Email")
     confirmed_at = DisplayDateTimeField(name="Confirmed At")
-    roles = RoleField(name='Roles')
+    roles = RoleField(name="Roles")
     tracking = ReadOnlyFormField(UserTrackingForm, name="Tracking", label="Logins")
-    settings = UserSettingsField(UserSettingsSubForm, name="Settings",
-                                 label="User Settings")
+    settings = UserSettingsField(
+        UserSettingsSubForm, name="Settings", label="User Settings"
+    )
 
 
 class RoleForm(CustomForm):

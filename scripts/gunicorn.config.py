@@ -4,7 +4,7 @@ from gunicorn.arbiter import Arbiter
 from gunicorn.workers.base import Worker
 from prometheus_flask_exporter.multiprocess import GunicornPrometheusMetrics
 
-os.environ['IS_GUNICORN'] = 'true'
+os.environ["IS_GUNICORN"] = "true"
 
 
 def when_ready(server: Arbiter) -> None:

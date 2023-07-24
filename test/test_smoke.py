@@ -17,7 +17,7 @@ class SmokeTest(AppTestBase):
         self.assertTrue(isinstance(app, Flask))
 
     def test_smoke_app_config(self: t.Self, app: Flask) -> None:
-        self.assertTrue(app.config['TESTING'])
+        self.assertTrue(app.config["TESTING"])
 
     def test_smoke_db(self: t.Self, app: Flask) -> None:
         self.assertTrue(isinstance(db, SQLAlchemy))

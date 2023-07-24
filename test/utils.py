@@ -9,16 +9,15 @@ from .config import security_config
 
 
 def authenticate(client: FlaskClient, email: str) -> None:
-    client.get('/auth/logout')
-    client.delete_cookie('session')
-    client.get('/auth/login')
-    for user in security_config['users']:
-        if user['email'] == email:
-            client.post('/auth/login',
-                        data={
-                            'email': user['email'],
-                            'password': user['password']
-                        })
+    client.get("/auth/logout")
+    client.delete_cookie("session")
+    client.get("/auth/login")
+    for user in security_config["users"]:
+        if user["email"] == email:
+            client.post(
+                "/auth/login",
+                data={"email": user["email"], "password": user["password"]},
+            )
             break
     else:
         raise ValueError("email not found in security config: %s" % email)

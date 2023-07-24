@@ -12,12 +12,10 @@ security = Security()
 
 
 def init_security_context_processors() -> None:
-    security.login_context_processor(lambda: dict(title='Login'))
-    security.forgot_password_context_processor(
-        lambda: dict(title='Forgot Password'))
-    security.register_context_processor(lambda: dict(title='Register'))
-    security.reset_password_context_processor(
-        lambda: dict(title='Reset Password'))
+    security.login_context_processor(lambda: dict(title="Login"))
+    security.forgot_password_context_processor(lambda: dict(title="Forgot Password"))
+    security.register_context_processor(lambda: dict(title="Register"))
+    security.reset_password_context_processor(lambda: dict(title="Reset Password"))
 
 
 def init_security(app: Flask) -> None:
