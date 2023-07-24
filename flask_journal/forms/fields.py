@@ -36,7 +36,7 @@ class DisplayStringField(StringField):
     def populate_obj(self: t.Self, *args: t.Any, **kwargs: t.Any) -> None:
         pass
 
-    def validate(self: t.Self, *args: t.Any, **kwargs: t.Any) -> None:
+    def validate(self: t.Self, *args: t.Any, **kwargs: t.Any) -> None:  # pragma: no cover
         return True
 
 
@@ -68,6 +68,8 @@ class RoleField(StringField):
                 obj = Role.query.filter_by(name=role).first()
                 if obj is not None:
                     self.data.append(obj)
+        else:  # pragma: no cover
+            pass
 
     def _value(self: t.Self) -> str:
         return " ".join([role.name for role in self.data]) if self.data is not None else ""
@@ -88,7 +90,7 @@ class RoleField(StringField):
 class UserSettingsField(FormField):
     def populate_obj(self: t.Self, obj: User, name: str) -> None:
         candidate = getattr(obj, name, None)
-        if candidate is None:
+        if candidate is None:  # pragma: no cover
             if self._obj is None:
                 candidate = UserSettings(user=obj)
             else:

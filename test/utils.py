@@ -5,7 +5,7 @@ from flask_security import UserMixin
 
 from flask_journal.models import User
 
-from .base import security_config
+from .config import security_config
 
 
 def authenticate(client: FlaskClient, email: str) -> None:

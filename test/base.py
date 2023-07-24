@@ -7,7 +7,7 @@ from flask.testing import FlaskClient
 
 from flask_journal.app import create_app
 from flask_journal.config import Config
-from flask_journal.models import db
+from flask_journal.models import UserSettings, db
 from flask_journal.models.setup import init_data
 from flask_journal.security import security
 
@@ -51,10 +51,12 @@ class AppClientTestBase(flask_unittest.AppClientTestCase):
                 email=enorm,
                 password=pnorm,
                 active=user['active'],
-                confirmed_at=datetime.now()
+                confirmed_at=datetime.now(),
+                settings=UserSettings()
             )
             u = security.datastore.find_user(
                 email=user['email'])
+
             db.session.add(u)
 
             for role in user['roles']:
@@ -81,7 +83,8 @@ class UserAppTestBase(AppTestBase):
                 email=enorm,
                 password=pnorm,
                 active=user['active'],
-                confirmed_at=datetime.now()
+                confirmed_at=datetime.now(),
+                settings=UserSettings()
             )
             u = security.datastore.find_user(
                 email=user['email'])

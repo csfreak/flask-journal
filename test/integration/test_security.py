@@ -13,8 +13,8 @@ from flask_journal.models import UserSettings
 from flask_journal.security import security
 from flask_journal.security.signals import user_init
 
-from ..base import AppTestBase, security_config
-from ..config import html_test_strings
+from ..base import AppTestBase
+from ..config import html_test_strings, security_config
 
 # from fakeredis import FakeStrictRedis
 # from flask_redis import Redis as FlaskRedis
@@ -141,7 +141,7 @@ class SecurityUserTest(AppTestBase):
                         c.post('/auth/logout')
                     else:
                         self.assertStatus(rv, 200)
-                        self.assertInResponse(html_test_strings['title'] % b'Login', rv)
+                        self.assertIn(html_test_strings['title'] % 'Login', rv.text)
                     c.delete_cookie('session')
 
     def test_user_login_invalid_password(self: t.Self, app: Flask) -> None:
@@ -164,8 +164,8 @@ class SecurityUserTest(AppTestBase):
                         'email': user['email'],
                         'password': 'invalidpassword',
                     })
-                    self.assertInResponse(html_test_strings['security']['error']['generic'], rv)
-                    self.assertInResponse(html_test_strings['title'] % b'Login', rv)
+                    self.assertIn(html_test_strings['security']['error']['generic'], rv.text)
+                    self.assertIn(html_test_strings['title'] % 'Login', rv.text)
 
     def test_user_login_not_confirmed(self: t.Self, app: Flask) -> None:
         for user in security_config['users']:
@@ -186,8 +186,8 @@ class SecurityUserTest(AppTestBase):
                         'email': user['email'],
                         'password': user['password'],
                     })
-                    self.assertInResponse(html_test_strings['security']['error']['email_confirm'], rv)
-                    self.assertInResponse(html_test_strings['title'] % b'Login', rv)
+                    self.assertIn(html_test_strings['security']['error']['email_confirm'], rv.text)
+                    self.assertIn(html_test_strings['title'] % 'Login', rv.text)
 
     def test_user_login_non_existent(self: t.Self, app: Flask) -> None:
         for user in security_config['users']:
@@ -209,8 +209,8 @@ class SecurityUserTest(AppTestBase):
                         'email': 'baduser@example.test',
                         'password': user['password'],
                     })
-                    self.assertInResponse(html_test_strings['security']['error']['generic'], rv)
-                    self.assertInResponse(html_test_strings['title'] % b'Login', rv)
+                    self.assertIn(html_test_strings['security']['error']['generic'], rv.text)
+                    self.assertIn(html_test_strings['title'] % 'Login', rv.text)
 
     def test_user_login_invalid_email(self: t.Self, app: Flask) -> None:
         for user in security_config['users']:
@@ -232,16 +232,16 @@ class SecurityUserTest(AppTestBase):
                         'email': 'notanemailaddress&1',
                         'password': user['password'],
                     })
-                    self.assertInResponse(html_test_strings['security']['error']['generic'], rv)
-                    self.assertInResponse(html_test_strings['title'] % b'Login', rv)
+                    self.assertIn(html_test_strings['security']['error']['generic'], rv.text)
+                    self.assertIn(html_test_strings['title'] % 'Login', rv.text)
 
     def test_context_processors(self: t.Self, app: Flask) -> None:
         for endpoint in ['login', 'register', 'forgot_password']:
-            title: bytes = endpoint.replace('_', ' ').title().encode()
+            title: str = endpoint.replace('_', ' ').title()
             with self.subTest(endpoint=endpoint):
                 with app.test_client() as c:
                     rv = c.get(url_for(f"security.{endpoint}"))
-                    self.assertInResponse(html_test_strings['title'] % title, rv)
+                    self.assertIn(html_test_strings['title'] % title, rv.text)
 
     def test_context_processor_reset_password(self: t.Self, app: Flask) -> None:
         user = security_config['users'][0]
@@ -261,7 +261,7 @@ class SecurityUserTest(AppTestBase):
                 url_for(
                     "security.reset_password",
                     token=generate_reset_password_token(u)))
-            self.assertInResponse(html_test_strings['title'] % b'Reset Password', rv)
+            self.assertIn(html_test_strings['title'] % 'Reset Password', rv.text)
 
     def test_user_init_handler(self: t.Self, app: Flask) -> None:
         user = security_config['users'][0]
