@@ -37,7 +37,7 @@ jobs:
           flake8 . --count --show-source --statistics
       - name: Tests
         run: |
-          py.test
+          py.test --cov-report=xml
 
       - name: Pytest coverage comment
         uses: MishaKav/pytest-coverage-comment@main
