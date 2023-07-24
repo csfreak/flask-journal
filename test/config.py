@@ -1,4 +1,3 @@
-
 test_config = {
     "SECURITY_EMAIL_VALIDATOR_ARGS": {"test_environment": True},
     "SECURITY_PASSWORD_HASH": "plaintext",
@@ -87,26 +86,47 @@ html_test_strings = {
         'undelete':
             '<input class="btn btn-danger btn-md mx-3" id="Undelete" name="Undelete" type="submit" value="Undelete">',
     },
-    'title': b'<title>Journal - %s</title>',
+    'title': '<title>Journal - %s</title>',
     'nav': {
-        'login': b'<a class="dropdown-item" href="/auth/login">Login</a>',
-        'register': b'<a class="dropdown-item" href="/auth/register">Register</a>',
-        'logout': b'<a class="dropdown-item" href="/auth/logout">Logout</a>',
-        'settings': b'<a class="dropdown-item" href="/settings">Settings</a>'
+        'login': '<a class="dropdown-item" href="/auth/login">Login</a>',
+        'register': '<a class="dropdown-item" href="/auth/register">Register</a>',
+        'logout': '<a class="dropdown-item" href="/auth/logout">Logout</a>',
+        'settings': '<a class="dropdown-item" href="/settings">Settings</a>'
     },
     'security': {
         'error': {
-            'generic': b'<li class="fs-error-msg">Authentication failed - identity or password/passcode invalid</li>',
-            'email_confirm': b'<li class="fs-error-msg">Email requires confirmation.</li>',
+            'generic': '<li class="fs-error-msg">Authentication failed - identity or password/passcode invalid</li>',
+            'email_confirm': '<li class="fs-error-msg">Email requires confirmation.</li>',
         }
     },
     'form': {
-        'created_at': b'<input class="form-control-plaintext  ms-auto" id="Created At" name="Created At" readonly="" type="text" value="%s">',
-        'updated_at': b'<input class="form-control-plaintext  ms-auto" id="Created At" name="Created At" readonly="" type="text" value="%s">',
-        'confirmed_at': b'<input class="form-control-plaintext  ms-auto" id="Created At" name="Created At" readonly="" type="text" value="%s">',
-        'deleted_at': b'<input class="form-control-plaintext  ms-auto" id="Created At" name="Created At" readonly="" type="text" value="%s">',
-        'id': b'<input id="id" name="id" type="hidden" value="%d">',
-        'roles': b'<input class="form-control form-control-plaintext" id="Roles" name="Roles" readonly type="text" value="%s">',
-        'error': b'<div class="invalid-feedback d-block">%s</div>',
+        'created_at': '<input class="form-control-plaintext  ms-auto" id="Created At" name="Created At" readonly="" type="text" value="%s">',
+        'updated_at': '<input class="form-control-plaintext  ms-auto" id="Created At" name="Created At" readonly="" type="text" value="%s">',
+        'confirmed_at': '<input class="form-control-plaintext  ms-auto" id="Created At" name="Created At" readonly="" type="text" value="%s">',
+        'deleted_at': '<input class="form-control-plaintext  ms-auto" id="Created At" name="Created At" readonly="" type="text" value="%s">',
+        'id': '<input id="id" name="id" type="hidden" value="%d">',
+        'roles': '<input class="form-control form-control-plaintext" id="Roles" name="Roles" readonly type="text" value="%s">',
+        'error': '<div class="invalid-feedback d-block">%s</div>',
+    },
+    'table': {
+        'create': '<button class="btn btn-primary btn-md" onclick="window.location.href=\'%s\';">Create</button>',
+        'base': '<table class="table table-striped table-hover">',
+        'title': '<th scope="col" class="col-%d">%s</th>',
+        'row': '<tr class="" onclick=\'window.location="/tests?id=%d"\'>\n        <th scope="row">%d</th><td>%s</td>\n    </tr>',
+        'pager': {
+            'form': '<div class="col d-flex flex-row-reverse">\n        \n<form method="get" class="form" role="form">\n    <select name="page_size" class="form-select mx-1 text-secondary border-secondary" aria-label="select page size" onchange="this.form.submit()">\n        <option selected>Page Size</option>\n        <option value="10">10</option>\n        <option value="20">20</option>\n        <option value="30">30</option>\n    </select>\n</form>\n</div>',
+            'current_page': '<a class="page-link" href="#">%d</a>',
+            'other_page': '<a class="page-link" href="\n    /tests?page=%d">'
+        }
+    },
+    'settings': {
+        'select': '<select class="form-select" id="Theme" name="Theme">',
+        'selected': '<option selected value="%s">%s</option>',
+        'option': '<option value="%s">%s</option>',
+        'css': {
+            'default': '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css">',
+            'bootswatch': '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.2.2/dist/%s/bootstrap.min.css">'
+        }
     }
+
 }

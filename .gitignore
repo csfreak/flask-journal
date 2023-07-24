@@ -9,8 +9,8 @@ build/
 
 # Unit test / coverage reports
 .coverage
-.coverage.lcov
-.coverage.xml
+coverage.lcov
+coverage.xml
 .pytest.xml
 
 # Sphinx documentation

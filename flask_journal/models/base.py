@@ -37,15 +37,6 @@ class JournalBaseModel(Model,
         if self.active != value:
             self.deleted_at = datetime.utcnow() if self.active else None
 
-    @classmethod
-    def find_by_id(cls: t.Self, _id: int) -> t.Self:
-        obj: t.Self = cls.query.filter_by(id=_id).first()
-        return obj
-
-    @classmethod
-    def find_all(cls: t.Self) -> list[t.Self]:
-        return cls.query.all()
-
     @property
     def immutable_attrs(self: t.Self) -> list[str]:
         return ['id', 'created_at', 'updated_at', 'deleted_at']

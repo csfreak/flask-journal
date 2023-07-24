@@ -40,23 +40,19 @@ class Entry(db.Model):
     def _decode_data(self: t.Self, data: str | bytes) -> str:
         b: bytes = base64.b64decode(data)
         if self.encrypted:
-            b = self._decrypt(b)
+            b = self._decrypt(b)  # pragma: no cover
         return b.decode('UTF-8')
 
     def _encode_data(self: t.Self, value: str) -> str:
         b: bytes = value.encode('UTF-8')
         if self.encrypted:
-            b = self._encrypt(b)
+            b = self._encrypt(b)  # pragma: no cover
         return base64.b64encode(b).decode('UTF-8')
 
-    def _encrypt(self: t.Self, data: bytes) -> bytes:
+    def _encrypt(self: t.Self, data: bytes) -> bytes:  # pragma: no cover
         # TODO
         return data
 
-    def _decrypt(self: t.Self, data: bytes) -> bytes:
+    def _decrypt(self: t.Self, data: bytes) -> bytes:  # pragma: no cover
         # TODO
         return data
-
-    @property
-    def tag_names(self: t.Self) -> str:
-        return " ".join([tag.name for tag in self.tags]) if self.tags is not None else ""

@@ -23,7 +23,7 @@
     {%- endwith %}
 {%- endmacro %}
 
-{% macro render_table(data,
+{%- macro render_table(data,
                       titles=None,
                       primary_key='id',
                       primary_key_title='#',
@@ -35,22 +35,22 @@
                       safe_columns=None,
                       urlize_columns=None,
                       endpoint=None) %}
-{% if not titles %}
-    {% set titles = get_table_titles(data, primary_key, primary_key_title) %}
-{% endif %}
-{% if responsive %}
+{%- if not titles %}
+    {%- set titles = get_table_titles(data, primary_key, primary_key_title) %}
+{%- endif %}
+{%- if responsive %}
     <div class="{{ responsive_class }}">
-{% endif %}
+{%- endif %}
 <table class="table{% if table_classes %}{{ ' ' + table_classes }}{% endif %}">
-    {% if caption %}
+    {%- if caption %}
     <caption>{{ caption }}</caption>
-    {% endif %}
+    {%- endif %}
     <thead{% if header_classes %} class="{{ header_classes }}"{% endif %}>
     <tr>
-    {% for title in titles %}
+    {%- for title in titles %}
         <th scope="col"{% if title[2] is defined %} class="col-{{ title[2] }}"{% endif %}>{{ title[1] }}</th>
-    {% endfor %}
-    {%- if current_user.has_role('manage') -%}
+    {% endfor -%}
+    {%- if current_user.has_role('manage') %}
         <th scope="col" class="col-2 deleted_record">Deleted At</th>
     {%- endif -%}
     </tr>
@@ -62,9 +62,9 @@
         {%- set row_class = "deleted_record" -%}
     {%- endif -%}
     <tr class="{{ row_class }}" onclick='window.location="{{ url_for(endpoint, id=row[primary_key]) }}"'>
-        {% for title in titles %}
-        {% set key = title[0] %}
-        {% set value = row[key] %}
+        {% for title in titles -%}
+        {%- set key = title[0] -%}
+        {%- set value = row[key] %}
         {%- if key == primary_key -%}
             <th scope="row">
         {%- else -%}
@@ -96,18 +96,17 @@
         {%- else -%}
             </td>
         {%- endif -%}
-        {% endfor %}
-        {%- if current_user.has_role('manage') -%}
+        {%- endfor -%}
+        {%- if current_user.has_role('manage') %}
             <td class="deleted_record">{{ row['deleted_at'] }}</td>
-        {%- endif -%}
+        {%- endif %}
     </tr>
-    {% endfor %}
+    {%- endfor %}
     </tbody>
 </table>
-{% if responsive %}
+{%- if responsive %}
     </div>
-{% endif %}
-
+{%- endif -%}
 {% endmacro %}
 
 

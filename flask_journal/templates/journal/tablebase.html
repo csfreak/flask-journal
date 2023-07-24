@@ -8,13 +8,10 @@
     .deleted_record {display: none;}
 </style>
 {%- endif -%}
-{% endblock styles %}
+{%- endblock styles -%}
 
-
-
-{% block content %}
+{%- block content %}
 <div class="d-flex flex-row-reverse">
-    
     <button class="btn btn-primary btn-{{ config.BOOTSTRAP_BTN_SIZE }}" onclick="window.location.href='{{url_for(endpoint)}}';">Create</button>
 </div>
 {{ render_table(pagination.items, titles=titles, responsive=True, table_classes="table-striped table-hover", endpoint=endpoint) }}
