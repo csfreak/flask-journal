@@ -1,3 +1,5 @@
+# flake8: noqa
+
 test_config = {
     "SECURITY_EMAIL_VALIDATOR_ARGS": {"test_environment": True},
     "SECURITY_PASSWORD_HASH": "plaintext",
