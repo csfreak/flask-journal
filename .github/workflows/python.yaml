@@ -1,4 +1,4 @@
-name: Lint and Test
+name: Python Checks
 
 on:
   pull_request:
@@ -9,10 +9,44 @@ on:
       - "**.py"
       - "build/*"
 
+permissions:
+  checks: write
+  contents: read
+
 jobs:
+  flake8:
+    runs-on: ubuntu-latest
+    name: Run flake8
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: |
+            requirements.txt
+            test/requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Setup flake8 annotations
+        uses: rbialon/flake8-annotations@v1
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --show-source --statistics
   test:
     runs-on: ubuntu-latest
-
+    name: Run pytest and report test coverage
+    needs: flake8
+    permissions:
+      checks: write
+      contents: read
+      issues: read
+      pull-requests: write
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python 3.11
@@ -28,13 +62,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r test/requirements.txt
-
-      - name: Setup flake8 annotations
-        uses: rbialon/flake8-annotations@v1
-      - name: Lint with flake8
-        run: |
-          # stop the build if there are Python syntax errors or undefined names
-          flake8 . --count --show-source --statistics
       - name: Tests
         run: |
           py.test --cov-report=xml
@@ -44,7 +71,20 @@ jobs:
         with:
           pytest-xml-coverage-path: coverage.xml
           junitxml-path: ./.pytest.xml
-
+  build:
+    runs-on: ubuntu-latest
+    name: Run Buildah
+    needs: test
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: |
+            requirements.txt
+            test/requirements.txt
       - name: GetVersion
         id: get_version
         run: |
