@@ -10,6 +10,7 @@ from flask import Flask
 def init_logging(app: Flask) -> None:
     logging_config = {
         "version": 1,
+        "disable_existing_loggers": False,  # Must be set for gunicorn
         "formatters": {"default": {"()": Formatter}},
         "handlers": {
             "wsgi": {

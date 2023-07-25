@@ -13,3 +13,9 @@ def when_ready(server: Arbiter) -> None:
 
 def child_exit(server: Arbiter, worker: Worker) -> None:
     GunicornPrometheusMetrics.mark_process_dead_on_child_exit(worker.pid)
+
+
+worker_connections: int = 10
+max_requests: int = 100
+max_requests_jitter: int = 10
+proc_name: str = "flask_journal"
