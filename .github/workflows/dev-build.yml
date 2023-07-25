@@ -54,7 +54,7 @@ jobs:
             ${{ github.sha }}
             v${{ steps.release_version.outputs.version }}-${{ github.sha }}
           containerfiles: |
-            ./build/Dockerfile
+            ./Dockerfile
           build-args: |
             APP_VERSION=${{ needs.release.outputs.version }}
           oci: true
