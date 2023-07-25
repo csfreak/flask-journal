@@ -73,13 +73,13 @@ def user(userdatastore: datastore, request: pytest.FixtureRequest) -> User:
 @pytest.fixture
 def logged_in_user_context(
     app: Flask, userdatastore: datastore, request: pytest.FixtureRequest
-) -> User:
+) -> None:
     with app.test_request_context():
         u: User = User.query.filter_by(email=request.param).first()
         if u is None:
             u = AnonymousUser()
         g._login_user = u
-        yield u
+        yield None
 
 
 @pytest.fixture

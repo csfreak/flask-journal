@@ -4,12 +4,11 @@ from datetime import datetime
 
 import pytest
 from flask import Flask
-from flask.testing import FlaskClient
 
 from flask_journal.models.base import JournalBaseModel
 from flask_journal.views import base as base_view
 
-from ..config import html_test_strings, view_form_action_buttons
+from ...config import html_test_strings, view_form_action_buttons
 
 
 @pytest.mark.parametrize(
@@ -69,7 +68,8 @@ def test_actions(
     "logged_in_user_context", ["user3@example.test"], indirect=True
 )
 @pytest.mark.parametrize("action", ["view", "new", "edit"])
-def test_actions_render(logged_in_user_context: FlaskClient, action: str) -> None:
+@pytest.mark.usefixtures("logged_in_user_context")
+def test_actions_render(action: str) -> None:
     r: str = base_view.render_form(
         form=base_view.CustomForm(), model=JournalBaseModel, action=action
     )
@@ -83,9 +83,8 @@ def test_actions_render(logged_in_user_context: FlaskClient, action: str) -> Non
 )
 @pytest.mark.parametrize("action", ["view", "new", "edit"])
 @pytest.mark.parametrize("button", view_form_action_buttons["all"])
-def test_actions_render_button(
-    logged_in_user_context: FlaskClient, action: str, button: str
-) -> None:
+@pytest.mark.usefixtures("logged_in_user_context")
+def test_actions_render_button(action: str, button: str) -> None:
     r: str = base_view.render_form(
         form=base_view.CustomForm(), model=JournalBaseModel, action=action
     )
@@ -99,9 +98,8 @@ def test_actions_render_button(
     "logged_in_user_context", ["user3@example.test"], indirect=True
 )
 @pytest.mark.parametrize("action", ["view", "new", "edit"])
-def test_actions_render_columns(
-    logged_in_user_context: FlaskClient, action: str
-) -> None:
+@pytest.mark.usefixtures("logged_in_user_context")
+def test_actions_render_columns(action: str) -> None:
     r: str = base_view.render_form(
         form=base_view.CustomForm(),
         model=JournalBaseModel,
@@ -116,9 +114,8 @@ def test_actions_render_columns(
     "logged_in_user_context", ["user3@example.test"], indirect=True
 )
 @pytest.mark.parametrize("button", view_form_action_buttons["all"])
-def test_actions_render_deleted_button(
-    logged_in_user_context: FlaskClient, button: str
-) -> None:
+@pytest.mark.usefixtures("logged_in_user_context")
+def test_actions_render_deleted_button(button: str) -> None:
     r: str = base_view.render_form(
         form=base_view.CustomForm(data={"deleted_at": datetime.now()}),
         model=JournalBaseModel,
