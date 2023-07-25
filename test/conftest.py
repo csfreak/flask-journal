@@ -79,15 +79,13 @@ def logged_in_user_context(
         if u is None:
             u = AnonymousUser()
         g._login_user = u
-        return u
+        yield u
 
 
 @pytest.fixture
 def logged_in_user_client(
     client: FlaskClient, userdatastore: datastore, request: pytest.FixtureRequest
 ) -> FlaskClient:
-    client.get("/auth/logout")
-    client.delete_cookie("session")
     client.get("/auth/login")
     for user in security_config["users"]:
         if user["email"] == request.param:
@@ -98,3 +96,6 @@ def logged_in_user_client(
             break
     else:
         raise ValueError("email not found in security config: %s" % request.email)
+    yield client
+    client.get("/auth/logout")
+    client.delete_cookie("session")

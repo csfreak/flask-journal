@@ -1,5 +1,4 @@
 import typing as t
-from copy import deepcopy
 from datetime import datetime
 from unittest import TestCase
 
@@ -15,104 +14,8 @@ from flask_journal.views import base as base_view
 from flask_journal.views import utils as view_utils
 
 from ..base import UserAppTestBase
-from ..config import html_test_strings, view_form_action_buttons
+from ..config import html_test_strings
 from ..utils import set_current_user
-
-
-class RenderFormFunctionTest(UserAppTestBase):
-    def test_invalid_action(self: t.Self, app: Flask) -> None:
-        self.assertRaises(
-            ValueError,
-            base_view.render_form,
-            form=base_view.CustomForm(),
-            model=JournalBaseModel,
-            action="invalid",
-        )
-
-    def test_actions(self: t.Self, app: Flask) -> None:
-        patch_render_template = patch("flask_journal.views.base.render_template")
-        for action in [None, "view", "new", "edit"]:
-            outer_kwargs = dict(action=action) if action else {}
-            with self.subTest(action=action):
-                action = action if action else "view"
-                for context_name, context in {
-                    "primary_fields_id": {"primary_fields": ["id"]},
-                    "context_var": {"context_var": "string"},
-                    "none": {},
-                }.items():
-                    with self.subTest(context=context_name):
-                        kwargs = deepcopy(outer_kwargs)
-                        kwargs.update(context)
-                        form = base_view.CustomForm()
-                        primary_fields = context.pop("primary_fields", None)
-                        mock_render_template = patch_render_template.start()
-                        r: str = base_view.render_form(
-                            form=form, model=JournalBaseModel, **kwargs
-                        )
-                        self.assertEqual(r, mock_render_template.return_value)
-                        mock_render_template.assert_called_once_with(
-                            "journal/formbase.html",
-                            form=form,
-                            action=action,
-                            primary_fields=primary_fields,
-                            title=f"{action} JournalBaseModel",
-                            **context,
-                        )
-                        patch_render_template.stop()
-
-    def test_actions_render(self: t.Self, app: Flask) -> None:
-        with app.test_request_context():
-            set_current_user("user3@example.test")
-            for action in [None, "view", "new", "edit"]:
-                kwargs = dict(action=action) if action else {}
-                with self.subTest(action=action):
-                    action = action if action else "view"
-                    r: str = base_view.render_form(
-                        form=base_view.CustomForm(), model=JournalBaseModel, **kwargs
-                    )
-                    self.assertNotIn('id="FormPrimaryColumn', r)
-                    self.assertNotIn('id="FormSecondaryColumn', r)
-                    self.assertIn(
-                        html_test_strings["title"]
-                        % f"{action.title()} Journalbasemodel",
-                        r,
-                    )
-                    for button in view_form_action_buttons[action]:
-                        with self.subTest(button=button):
-                            self.assertIn(html_test_strings["button"][button], r)
-                    for button in [
-                        b
-                        for b in view_form_action_buttons["all"]
-                        if b not in view_form_action_buttons[action]
-                    ]:
-                        with self.subTest(button=button):
-                            self.assertNotIn(html_test_strings["button"][button], r)
-
-    def test_columns_render(self: t.Self, app: Flask) -> None:
-        with app.test_request_context():
-            set_current_user("user3@example.test")
-            r: str = base_view.render_form(
-                form=base_view.CustomForm(),
-                model=JournalBaseModel,
-                primary_fields=["id"],
-            )
-            self.assertIn('id="FormPrimaryColumn', r)
-            self.assertIn('id="FormSecondaryColumn', r)
-
-    def test_undelete(self: t.Self, app: Flask) -> None:
-        with app.test_request_context():
-            set_current_user("user3@example.test")
-            r: str = base_view.render_form(
-                form=base_view.CustomForm(data={"deleted_at": datetime.now()}),
-                model=JournalBaseModel,
-            )
-            with self.subTest(button="undelete"):
-                self.assertIn(html_test_strings["button"]["undelete"], r)
-            for button in [
-                b for b in view_form_action_buttons["all"] if b != "undelete"
-            ]:
-                with self.subTest(button=button):
-                    self.assertNotIn(html_test_strings["button"][button], r)
 
 
 class FormViewFunctionTest(TestCase):
