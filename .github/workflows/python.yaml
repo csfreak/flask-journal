@@ -97,7 +97,6 @@ jobs:
         with:
           github-token: ${{ github.token }}
           allow-initial-development-versions: true
-          force-bump-patch-version: true
           prerelease: true
           dry: true
       - name: SetVersion
@@ -108,7 +107,7 @@ jobs:
       - name: Buildah
         uses: redhat-actions/buildah-build@v2
         with:
-          image: flask-journal
+          image: flask_journal
           tags: ${{ github.sha }}
           containerfiles: |
             ./Dockerfile

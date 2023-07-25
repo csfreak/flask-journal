@@ -1,8 +1,8 @@
-name: Build and Release
+name: Dev Build
 on:
   push:
     branches:
-      - main
+      - dev
     paths:
       - "flask_journal"
       - "migrations"
@@ -12,7 +12,7 @@ on:
       - "pyproject.toml"
 
 permissions:
-  checks: write
+  checks: read
   contents: read
   packages: write
 env:
@@ -23,6 +23,12 @@ env:
 jobs:
   release:
     runs-on: ubuntu-latest
+    outputs:
+      tags: >
+        ${{ github.sha }}
+        v${{ steps.release_version.outputs.version }}-${{ github.sha }}
+      success: ${{ steps.release_version.outputs.version != '' }}
+      version: v${{ steps.release_version.outputs.version }}
     steps:
       - uses: actions/checkout@v3
       - name: Semantic Release
@@ -31,11 +37,12 @@ jobs:
         with:
           github-token: ${{ github.token }}
           allow-initial-development-versions: true
-          force-bump-patch-version: true
+          dry: true
+          prerelease: true
       - name: SetVersion
         id: version
         run: |
-          version=${{ steps.release_version.outputs.version }}
+          version=${{ needs.release.outputs.version }}.dev${{ github.sha }}
           echo $version > VERSION
       - name: Build Image
         id: build_image
@@ -44,9 +51,7 @@ jobs:
           image: flask_journal
           tags: >
             ${{ github.sha }}
-            v${{ steps.release_version.outputs.version }}
-            v${{ steps.release_version.outputs.version_major }}
-            v${{ steps.release_version.outputs.version_major }}.${{ steps.release_version.outputs.version_minor }}
+            v${{ steps.release_version.outputs.version }}-${{ github.sha }}
           containerfiles: |
             ./build/Dockerfile
           build-args: |
