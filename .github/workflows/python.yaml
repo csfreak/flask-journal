@@ -7,7 +7,7 @@ on:
       - "dev"
     paths:
       - "**.py"
-      - "build/*"
+      - "**requirements.txt"
 
 permissions:
   checks: write

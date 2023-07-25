@@ -6,6 +6,7 @@ on:
     paths:
       - "flask_journal"
       - "migrations"
+      - "scripts"
       - "Dockerfile"
       - "LICENSE"
       - "requirements.txt"
