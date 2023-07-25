@@ -49,7 +49,7 @@ jobs:
             v${{ steps.release_version.outputs.version_major }}
             v${{ steps.release_version.outputs.version_major }}.${{ steps.release_version.outputs.version_minor }}
           containerfiles: |
-            ./build/Dockerfile
+            ./Dockerfile
           build-args: |
             APP_VERSION=${{ needs.release.outputs.version }}
           oci: true
