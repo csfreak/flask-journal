@@ -60,7 +60,7 @@
     {%- set row_class = "" -%}
     {%- if row['deleted_at'] is not none -%}
         {%- set row_class = "deleted_record" -%}
-    {%- endif -%}
+    {%- endif %}
     <tr class="{{ row_class }}" onclick='window.location="{{ url_for(endpoint, id=row[primary_key]) }}"'>
         {% for title in titles -%}
         {%- set key = title[0] -%}

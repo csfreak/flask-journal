@@ -1,0 +1,106 @@
+import logging
+import typing as t
+from datetime import datetime
+from math import ceil
+
+from flask_journal.models import User
+
+Model = t.TypeVar("Model", bound="MockModel")
+logger = logging.getLogger(__name__)
+
+
+class MockPagination:
+    page: int
+    per_page: int
+
+    _items: list[Model]
+
+    def __init__(self: t.Self, page: int, per_page: int, _items: list[Model]) -> None:
+        self.page = page
+        self.per_page = per_page
+        self._items = _items
+        logger.debug("Initialize New MockPagination")
+        logger.debug(
+            "page %d contains %d items with ids %s out of %d total items",
+            self.page,
+            len(self.items),
+            [m.id for m in self.items],
+            self.total,
+        )
+
+    @property
+    def first(self: t.Self) -> int:
+        return ((self.page - 1) * self.per_page) + 1
+
+    @property
+    def last(self: t.Self) -> int:
+        return min(self.first + self.per_page, len(self._items) + 1)
+
+    @property
+    def items(self: t.Self) -> list[Model]:
+        return self._items[self.first - 1 : self.last - 1]
+
+    @property
+    def total(self: t.Self) -> int:
+        return len(self._items)
+
+    @property
+    def pages(self: t.Self) -> int:
+        if self.total == 0 or self.total is None:
+            return 0
+
+        return ceil(self.total / self.per_page)
+
+    def iter_pages(self: t.Self) -> t.Iterator[int | None]:
+        if self.pages <= 1:
+            return
+
+        yield from range(1, self.pages + 1)
+
+
+class MockQuery:
+    filter: dict[str, t.Any]
+    include_deleted: bool = False
+    order_field: bool = False
+    order_desc: bool = False
+    _items: list[Model]
+
+    def __init__(self: t.Self) -> None:
+        logger.debug("Initialize New MockQuery")
+        self.filter = {}
+
+    def filter_by(self: t.Self, **kwargs: t.Any) -> t.Self:
+        logger.debug("filter_by called with %s", kwargs)
+        self.filter.update(kwargs)
+        return self
+
+    def execution_options(self: t.Self, include_deleted: bool) -> t.Self:
+        logger.debug(
+            "execution_options called with include_deleted=%s", include_deleted
+        )
+        self.include_deleted = include_deleted
+        return self
+
+    def order_by(self: t.Self, order_exp: t.Any) -> t.Self:
+        logger.debug("order_by called with %s", order_exp)
+        if isinstance(order_exp, str):
+            self.order_desc = True
+
+        self.order_field = True
+        return self
+
+    def paginate(self: t.Self, page: int, per_page: int) -> MockPagination:
+        logger.debug("Return new MockPagination")
+        return MockPagination(page, per_page, self._items)
+
+
+class MockModel:
+    query = MockQuery()
+    id: int = None
+    created_at: datetime = None
+    deleted_at: datetime = None
+    _user: User
+
+    @property
+    def user(self: t.Self) -> t.Any:
+        return self._user

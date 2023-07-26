@@ -127,10 +127,8 @@ html_test_strings = {
         ),
         "base": '<table class="table table-striped table-hover">',
         "title": '<th scope="col" class="col-%d">%s</th>',
-        "row": (
-            '<tr class="" onclick=\'window.location="/tests?id=%d"\'>\n        <th'
-            ' scope="row">%d</th><td>%s</td>\n    </tr>'
-        ),
+        "row_link": '<tr class="" onclick=\'window.location="/tests?id=%d"\'>',
+        "row_data": '<th scope="row">%d</th><td>%s</td>',
         "pager": {
             "form": (
                 '<div class="col d-flex flex-row-reverse">\n        \n<form'

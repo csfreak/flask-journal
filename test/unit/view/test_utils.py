@@ -1,5 +1,3 @@
-import typing as t
-
 import pytest
 import wtforms
 from flask import Flask
@@ -8,6 +6,8 @@ from werkzeug.exceptions import HTTPException
 from flask_journal.forms.base import CustomForm
 from flask_journal.models import User
 from flask_journal.views import utils as view_utils
+
+from . import MockModel
 
 
 def test_process_request_id_none(app: Flask) -> None:
@@ -60,30 +60,6 @@ def test_form_submit_action(app: Flask, action: str) -> None:
     with app.test_request_context(method="POST", data={"id": "1", action: action}):
         r_action: str = view_utils.form_submit_action(TestForm())
         assert r_action == action
-
-
-class MockQuery:
-    filter: dict[str, t.Any]
-    include_deleted: bool = False
-
-    def __init__(self: t.Self) -> None:
-        self.filter = {}
-
-    def filter_by(self: t.Self, **kwargs: t.Any) -> t.Self:
-        self.filter.update(kwargs)
-        return self
-
-    def execution_options(self: t.Self, include_deleted: bool) -> t.Self:
-        self.include_deleted = include_deleted
-        return self
-
-
-class MockModel:
-    query = MockQuery()
-
-    @property
-    def user(self: t.Self) -> t.Any:
-        return None
 
 
 @pytest.mark.parametrize(
