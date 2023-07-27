@@ -1,14 +1,13 @@
 import logging
 import typing as t
-from unittest import TestCase
+from datetime import datetime
 
 import pytest
-from mock import MagicMock, patch
 from werkzeug.exceptions import HTTPException
 
 from flask_journal.views import base as base_view
 
-from . import Form, Model
+from . import Form, MockDB, MockFlash, Model
 
 logger = logging.getLogger(__name__)
 
@@ -35,16 +34,34 @@ def render_form(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.fixture
-def flash(monkeypatch: pytest.MonkeyPatch) -> dict[str : t.Any]:
-    response: dict[str, t.Any] = {}
+def form_action(monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest) -> str:
+    def mock_submit_action(form: Form) -> str:
+        form.action = request.param
+        return request.param
 
-    def mock_flash(message: str, **kwargs: t.Any) -> None:
-        response.update(kwargs)
-        response.update(message=message)
+    logging.debug("patching form_submit_action to %s", request.param)
+    monkeypatch.setattr(base_view.utils, "form_submit_action", mock_submit_action)
+    return request.param
 
+
+@pytest.fixture
+def flash(
+    monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest
+) -> dict[str : t.Any]:
     logger.debug("patching flash")
-    monkeypatch.setattr(base_view, "flash", mock_flash)
-    yield response
+    flash = MockFlash(**request.param)
+    monkeypatch.setattr(base_view, "flash", flash.flash)
+    yield flash
+
+
+@pytest.fixture
+def mock_db(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(base_view, "db", MockDB())
+
+
+@pytest.fixture
+def error(request: pytest.FixtureRequest) -> Exception | None:
+    return request.param
 
 
 @pytest.mark.parametrize("obj_id", [None, 1], indirect=True)
@@ -52,9 +69,7 @@ def flash(monkeypatch: pytest.MonkeyPatch) -> dict[str : t.Any]:
     "logged_in_user_context", ["user3@example.test"], indirect=True
 )
 @pytest.mark.usefixtures("logged_in_user_context")
-def test_get(
-    model_class: Model, obj_id: None, form_class: Form, flash: dict[str, t.Any]
-) -> None:
+def test_get(model_class: Model, obj_id: None, form_class: Form) -> None:
     model = None
     expected_rf = {"form": form_class(), "model": model_class, "action": "new"}
     if obj_id:
@@ -73,9 +88,7 @@ def test_get(
     "logged_in_user_context", ["user3@example.test"], indirect=True
 )
 @pytest.mark.usefixtures("logged_in_user_context")
-def test_get_fail(
-    model_class: Model, obj_id: None, form_class: Form, flash: dict[str, t.Any]
-) -> None:
+def test_get_fail(model_class: Model, obj_id: None, form_class: Form) -> None:
     expected_rf = {"form": form_class(), "model": model_class, "action": "new"}
     if obj_id:
         expected_rf.pop("action")
@@ -83,363 +96,156 @@ def test_get_fail(
         base_view.form_view(model_class, form_class, "")
 
 
-class FormViewFunctionTest(TestCase):
-    def setUp(self: t.Self) -> None:
-        self.mock_render_form: MagicMock = patch(
-            "flask_journal.views.base.render_form"
-        ).start()
-        self.mock_utils: MagicMock = patch("flask_journal.views.base.utils").start()
-        self.mock_redirect: MagicMock = patch(
-            "flask_journal.views.base.redirect"
-        ).start()
-        self.mock_db: MagicMock = patch("flask_journal.views.base.db").start()
-        self.mock_flash: MagicMock = patch("flask_journal.views.base.flash").start()
-        self.mock_abort: MagicMock = patch("flask_journal.views.base.abort").start()
-        self.mock_current_user: MagicMock = patch(
-            "flask_journal.views.base.current_user", new_callable=MagicMock
-        ).start()
-        self.mock_url_for: MagicMock = patch("flask_journal.views.base.url_for").start()
+@pytest.mark.parametrize(
+    ("logged_in_user_context", "obj_id", "form_action", "flash", "error"),
+    [
+        (
+            "user3@example.test",
+            None,
+            "Create",
+            {"message": "model Created", "category": "message"},
+            None,
+        ),
+        (
+            "user3@example.test",
+            1,
+            "Create",
+            {},
+            HTTPException,
+        ),
+        (
+            "user3@example.test",
+            404,
+            "Update",
+            {},
+            HTTPException,
+        ),
+        (
+            "user3@example.test",
+            1,
+            "Update",
+            {"message": "model Updated", "category": "message"},
+            None,
+        ),
+        (
+            "user3@example.test",
+            404,
+            "Edit",
+            {},
+            HTTPException,
+        ),
+        (
+            "user3@example.test",
+            1,
+            "Edit",
+            {},
+            None,
+        ),
+        (
+            "user3@example.test",
+            404,
+            "Undelete",
+            {},
+            HTTPException,
+        ),
+        (
+            "user3@example.test",
+            1,
+            "Undelete",
+            {"message": "Unable to Undelete model", "category": "error"},
+            None,
+        ),
+        (
+            "user2@example.test",
+            1,
+            "Undelete",
+            {"message": "model Restored", "category": "warning"},
+            None,
+        ),
+        (
+            "user3@example.test",
+            404,
+            "Delete",
+            {},
+            HTTPException,
+        ),
+        (
+            "user3@example.test",
+            1,
+            "Delete",
+            {"message": "model Deleted"},
+            None,
+        ),
+    ],
+    ids=[
+        "create_success",
+        "create_existing",
+        "update_missing",
+        "update_success",
+        "edit_missing",
+        "edit_success",
+        "undelete_missing",
+        "undelete_without_manage_role",
+        "undelete_success",
+        "delete_missing",
+        "delete_success",
+    ],
+    indirect=True,
+)
+@pytest.mark.usefixtures("logged_in_user_context", "mock_db")
+def test_post(
+    obj_id: int | None,
+    flash: MockFlash,
+    route: str,
+    model_class: Model,
+    form_class: Form,
+    form_action: str,
+    error: Exception | None,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    model = None
+    expected_rf = {
+        "form": form_class(),
+        "model": model_class,
+        "action": "new",
+    }
+    form_class()._valid = True
+    if obj_id and not error and form_action != "Create":
+        model = model_class()
+        model.id = obj_id
+        model_class.query._items = [model]
+        expected_rf.pop("action")
+        match form_action:
+            case "Undelete":
+                model.deleted_at = datetime.now()
+            case "Edit":
+                expected_rf["action"] = "edit"
+            case "Delete":
+                expected_rf = route
 
-        self.mock_abort.side_effect = HTTPException()
+                def redirect(url: str) -> str:
+                    return url
 
-        self.form_class = MagicMock(name="CustomForm")
-        self.model_class = MagicMock(name="JournalBaseModel")
-        self.model_class.configure_mock(__name__="JournalBaseModelMock")
-        return super().setUp()
+                monkeypatch.setattr(base_view, "redirect", redirect)
 
-    def tearDown(self: t.Self) -> None:
-        patch.stopall()
-        return super().tearDown()
+    if error:
+        with pytest.raises(error):
+            base_view.form_view(model_class, form_class, route)
+    else:
+        rf = base_view.form_view(model_class, form_class, "test")
+        assert rf == expected_rf
 
-    def test_id_none_create(self: t.Self) -> None:
-        self.mock_utils.process_request_id.return_value = None
-        self.form_class.return_value.validate_on_submit.return_value = True
-        self.mock_utils.form_submit_action.return_value = "Create"
-        base_view.form_view(self.model_class, self.form_class, "")
-        self.mock_utils.process_request_id.assert_called_once_with()
-        self.mock_utils.build_query.assert_called_once_with(
-            model=self.model_class, filters={"id": None}
-        )
-        self.mock_utils.build_query.return_value.first.assert_called_once_with()
-        self.form_class.assert_called_once_with(
-            obj=self.mock_utils.build_query.return_value.first.return_value
-        )
-        self.form_class.return_value.validate_on_submit.assert_called_once_with()
-        self.model_class.assert_called_once_with(user=self.mock_current_user)
-        self.form_class.return_value.populate_obj.assert_called_once_with(
-            self.model_class.return_value
-        )
-        self.mock_db.session.add.assert_called_once_with(self.model_class.return_value)
-        self.mock_db.session.commit.assert_called_once_with()
-        self.mock_flash.assert_called_once_with(
-            "JournalBaseModelMock Created", category="message"
-        )
-        self.mock_render_form.assert_called_once_with(
-            form=self.form_class.return_value, model=self.model_class
-        )
-        self.mock_redirect.assert_not_called()
-        self.mock_abort.assert_not_called()
-        self.mock_url_for.assert_not_called()
-
-    def test_id_set_create(self: t.Self) -> None:
-        self.mock_utils.process_request_id.return_value = 1
-        self.mock_utils.build_query.return_value.first.return_value = None
-        self.form_class.return_value.validate_on_submit.return_value = True
-        self.mock_utils.form_submit_action.return_value = "Create"
-        try:
-            base_view.form_view(self.model_class, self.form_class, "")
-        except HTTPException:
-            self.mock_abort.assert_called_once_with(404)
-        else:
-            self.fail("abort not called")
-        self.mock_utils.process_request_id.assert_called_once_with()
-        self.mock_utils.build_query.assert_called_once_with(
-            model=self.model_class, filters={"id": 1}
-        )
-        self.mock_utils.build_query.return_value.first.assert_called_once_with()
-        self.form_class.assert_called_once_with(
-            obj=self.mock_utils.build_query.return_value.first.return_value
-        )
-        self.form_class.return_value.validate_on_submit.assert_called_once_with()
-        self.model_class.assert_not_called()
-        self.form_class.return_value.populate_obj.assert_not_called()
-        self.mock_db.session.add.assert_not_called()
-        self.mock_db.session.commit.assert_not_called()
-        self.mock_flash.assert_not_called()
-        self.mock_render_form.assert_not_called()
-        self.mock_redirect.assert_not_called()
-        self.mock_url_for.assert_not_called()
-
-    def test_obj_exists_update(self: t.Self) -> None:
-        self.mock_utils.process_request_id.return_value = 1
-        self.form_class.return_value.validate_on_submit.return_value = True
-        self.mock_utils.form_submit_action.return_value = "Update"
-        base_view.form_view(self.model_class, self.form_class, "")
-        self.mock_utils.process_request_id.assert_called_once_with()
-        self.mock_utils.build_query.assert_called_once_with(
-            model=self.model_class, filters={"id": 1}
-        )
-        self.mock_utils.build_query.return_value.first.assert_called_once_with()
-        self.form_class.assert_called_once_with(
-            obj=self.mock_utils.build_query.return_value.first.return_value
-        )
-        self.form_class.return_value.validate_on_submit.assert_called_once_with()
-        self.form_class.return_value.process.assert_called_once_with(
-            obj=self.mock_utils.build_query.return_value.first.return_value
-        )
-        self.form_class.return_value.populate_obj.assert_called_once_with(
-            self.mock_utils.build_query.return_value.first.return_value
-        )
-        self.mock_db.session.add.assert_called_once_with(
-            self.mock_utils.build_query.return_value.first.return_value
-        )
-        self.mock_db.session.commit.assert_called_once_with()
-        self.mock_flash.assert_called_once_with(
-            "JournalBaseModelMock Updated", category="message"
-        )
-        self.mock_render_form.assert_called_once_with(
-            form=self.form_class.return_value, model=self.model_class
-        )
-        self.mock_redirect.assert_not_called()
-        self.mock_abort.assert_not_called()
-        self.model_class.assert_not_called()
-        self.mock_url_for.assert_not_called()
-
-    def test_obj_none_update(self: t.Self) -> None:
-        self.mock_utils.process_request_id.return_value = 1
-        self.mock_utils.build_query.return_value.first.return_value = None
-        self.form_class.return_value.validate_on_submit.return_value = True
-        self.mock_utils.form_submit_action.return_value = "Update"
-        try:
-            base_view.form_view(self.model_class, self.form_class, "")
-        except HTTPException:
-            self.mock_abort.assert_called_once_with(404)
-        else:
-            self.fail("abort not called")
-        self.mock_utils.process_request_id.assert_called_once_with()
-        self.mock_utils.build_query.assert_called_once_with(
-            model=self.model_class, filters={"id": 1}
-        )
-        self.mock_utils.build_query.return_value.first.assert_called_once_with()
-        self.form_class.assert_called_once_with(
-            obj=self.mock_utils.build_query.return_value.first.return_value
-        )
-        self.form_class.return_value.validate_on_submit.assert_called_once_with()
-        self.model_class.assert_not_called()
-        self.form_class.return_value.populate_obj.assert_not_called()
-        self.mock_db.session.add.assert_not_called()
-        self.mock_db.session.commit.assert_not_called()
-        self.mock_flash.assert_not_called()
-        self.mock_render_form.assert_not_called()
-        self.mock_redirect.assert_not_called()
-        self.mock_url_for.assert_not_called()
-
-    def test_obj_set_edit(self: t.Self) -> None:
-        self.mock_utils.process_request_id.return_value = 1
-        self.form_class.return_value.validate_on_submit.return_value = True
-        self.mock_utils.form_submit_action.return_value = "Edit"
-        base_view.form_view(self.model_class, self.form_class, "")
-        self.mock_utils.process_request_id.assert_called_once_with()
-        self.mock_utils.build_query.assert_called_once_with(
-            model=self.model_class, filters={"id": 1}
-        )
-        self.mock_utils.build_query.return_value.first.assert_called_once_with()
-        self.form_class.assert_called_once_with(
-            obj=self.mock_utils.build_query.return_value.first.return_value
-        )
-        self.form_class.return_value.validate_on_submit.assert_called_once_with()
-        self.mock_render_form.assert_called_once_with(
-            action="edit", form=self.form_class.return_value, model=self.model_class
-        )
-        self.mock_redirect.assert_not_called()
-        self.form_class.return_value.populate_obj.assert_not_called()
-        self.mock_db.session.add.assert_not_called()
-        self.mock_db.session.commit.assert_not_called()
-        self.mock_flash.assert_not_called()
-        self.mock_abort.assert_not_called()
-        self.model_class.assert_not_called()
-        self.mock_url_for.assert_not_called()
-
-    def test_obj_none_edit(self: t.Self) -> None:
-        self.mock_utils.process_request_id.return_value = 1
-        self.mock_utils.build_query.return_value.first.return_value = None
-        self.form_class.return_value.validate_on_submit.return_value = True
-        self.mock_utils.form_submit_action.return_value = "Edit"
-        try:
-            base_view.form_view(self.model_class, self.form_class, "")
-        except HTTPException:
-            self.mock_abort.assert_called_once_with(404)
-        else:
-            self.fail("abort not called")
-        self.mock_utils.process_request_id.assert_called_once_with()
-        self.mock_utils.build_query.assert_called_once_with(
-            model=self.model_class, filters={"id": 1}
-        )
-        self.mock_utils.build_query.return_value.first.assert_called_once_with()
-        self.form_class.assert_called_once_with(
-            obj=self.mock_utils.build_query.return_value.first.return_value
-        )
-        self.form_class.return_value.validate_on_submit.assert_called_once_with()
-        self.model_class.assert_not_called()
-        self.form_class.return_value.populate_obj.assert_not_called()
-        self.mock_db.session.add.assert_not_called()
-        self.mock_db.session.commit.assert_not_called()
-        self.mock_flash.assert_not_called()
-        self.mock_render_form.assert_not_called()
-        self.mock_redirect.assert_not_called()
-        self.mock_url_for.assert_not_called()
-
-    def test_obj_set_delete(self: t.Self) -> None:
-        self.mock_utils.process_request_id.return_value = 1
-        self.form_class.return_value.validate_on_submit.return_value = True
-        self.mock_utils.form_submit_action.return_value = "Delete"
-        base_view.form_view(self.model_class, self.form_class, "test_endpoint")
-        self.mock_utils.process_request_id.assert_called_once_with()
-        self.mock_utils.build_query.assert_called_once_with(
-            model=self.model_class, filters={"id": 1}
-        )
-        self.mock_utils.build_query.return_value.first.assert_called_once_with()
-        self.form_class.assert_called_once_with(
-            obj=self.mock_utils.build_query.return_value.first.return_value
-        )
-        self.form_class.return_value.validate_on_submit.assert_called_once_with()
-        self.mock_utils.build_query.return_value.first.return_value.delete.assert_called_once_with()
-        self.mock_db.session.add.assert_called_once_with(
-            self.mock_utils.build_query.return_value.first.return_value
-        )
-        self.mock_db.session.commit.assert_called_once_with()
-        self.mock_flash.assert_called_once_with("JournalBaseModelMock Deleted")
-        self.mock_url_for.assert_called_once_with("test_endpoint")
-        self.mock_redirect.assert_called_once_with(self.mock_url_for.return_value)
-        self.mock_render_form.assert_not_called()
-        self.form_class.return_value.populate_obj.assert_not_called()
-        self.form_class.return_value.process.assert_not_called()
-        self.mock_abort.assert_not_called()
-        self.model_class.assert_not_called()
-
-    def test_obj_none_delete(self: t.Self) -> None:
-        self.mock_utils.process_request_id.return_value = 1
-        self.mock_utils.build_query.return_value.first.return_value = None
-        self.form_class.return_value.validate_on_submit.return_value = True
-        self.mock_utils.form_submit_action.return_value = "Delete"
-        try:
-            base_view.form_view(self.model_class, self.form_class, "")
-        except HTTPException:
-            self.mock_abort.assert_called_once_with(404)
-        else:
-            self.fail("abort not called")
-        self.mock_utils.process_request_id.assert_called_once_with()
-        self.mock_utils.build_query.assert_called_once_with(
-            model=self.model_class, filters={"id": 1}
-        )
-        self.mock_utils.build_query.return_value.first.assert_called_once_with()
-        self.form_class.assert_called_once_with(
-            obj=self.mock_utils.build_query.return_value.first.return_value
-        )
-        self.form_class.return_value.validate_on_submit.assert_called_once_with()
-        self.model_class.assert_not_called()
-        self.form_class.return_value.populate_obj.assert_not_called()
-        self.mock_db.session.add.assert_not_called()
-        self.mock_db.session.commit.assert_not_called()
-        self.mock_flash.assert_not_called()
-        self.mock_render_form.assert_not_called()
-        self.mock_redirect.assert_not_called()
-        self.mock_url_for.assert_not_called
-
-    def test_obj_set_undelete(self: t.Self) -> None:
-        self.mock_utils.process_request_id.return_value = 1
-        self.form_class.return_value.validate_on_submit.return_value = True
-        self.mock_utils.form_submit_action.return_value = "Undelete"
-        self.mock_current_user.has_role.return_value = True
-        base_view.form_view(self.model_class, self.form_class, "test_endpoint")
-        self.mock_utils.process_request_id.assert_called_once_with()
-        self.mock_utils.build_query.assert_called_once_with(
-            model=self.model_class, filters={"id": 1}
-        )
-        self.mock_utils.build_query.return_value.first.assert_called_once_with()
-        self.form_class.assert_called_once_with(
-            obj=self.mock_utils.build_query.return_value.first.return_value
-        )
-        self.form_class.return_value.validate_on_submit.assert_called_once_with()
-        self.mock_current_user.has_role.assert_called_once_with("manage")
-        self.mock_utils.build_query.return_value.first.return_value.undelete.assert_called_once_with()
-        self.mock_db.session.add.assert_called_once_with(
-            self.mock_utils.build_query.return_value.first.return_value
-        )
-        self.mock_db.session.commit.assert_called_once_with()
-        self.form_class.return_value.process.assert_called_once_with(
-            obj=self.mock_utils.build_query.return_value.first.return_value
-        )
-        self.mock_flash.assert_called_once_with(
-            "JournalBaseModelMock Restored", category="warning"
-        )
-        self.mock_render_form.assert_called_once_with(
-            form=self.form_class.return_value, model=self.model_class
-        )
-        self.form_class.return_value.populate_obj.assert_not_called()
-        self.mock_redirect.assert_not_called()
-        self.mock_abort.assert_not_called()
-        self.model_class.assert_not_called()
-        self.mock_url_for.assert_not_called()
-
-    def test_obj_none_undelete(self: t.Self) -> None:
-        self.mock_utils.process_request_id.return_value = 1
-        self.mock_utils.build_query.return_value.first.return_value = None
-        self.form_class.return_value.validate_on_submit.return_value = True
-        self.mock_utils.form_submit_action.return_value = "Undelete"
-        try:
-            base_view.form_view(self.model_class, self.form_class, "")
-        except HTTPException:
-            self.mock_abort.assert_called_once_with(404)
-        else:
-            self.fail("abort not called")
-        self.mock_utils.process_request_id.assert_called_once_with()
-        self.mock_utils.build_query.assert_called_once_with(
-            model=self.model_class, filters={"id": 1}
-        )
-        self.mock_utils.build_query.return_value.first.assert_called_once_with()
-        self.form_class.assert_called_once_with(
-            obj=self.mock_utils.build_query.return_value.first.return_value
-        )
-        self.form_class.return_value.validate_on_submit.assert_called_once_with()
-        self.mock_current_user.has_role.assert_not_called()
-        self.model_class.assert_not_called()
-        self.form_class.return_value.populate_obj.assert_not_called()
-        self.form_class.return_value.process.assert_not_called()
-        self.mock_db.session.add.assert_not_called()
-        self.mock_db.session.commit.assert_not_called()
-        self.mock_flash.assert_not_called()
-        self.mock_render_form.assert_not_called()
-        self.mock_redirect.assert_not_called()
-        self.mock_url_for.assert_not_called
-
-    def test_obj_set_undelete_no_role(self: t.Self) -> None:
-        self.mock_utils.process_request_id.return_value = 1
-        self.form_class.return_value.validate_on_submit.return_value = True
-        self.mock_utils.form_submit_action.return_value = "Undelete"
-        self.mock_current_user.has_role.return_value = False
-        base_view.form_view(self.model_class, self.form_class, "")
-        self.mock_utils.process_request_id.assert_called_once_with()
-        self.mock_utils.build_query.assert_called_once_with(
-            model=self.model_class, filters={"id": 1}
-        )
-        self.mock_utils.build_query.return_value.first.assert_called_once_with()
-        self.form_class.assert_called_once_with(
-            obj=self.mock_utils.build_query.return_value.first.return_value
-        )
-        self.form_class.return_value.validate_on_submit.assert_called_once_with()
-        self.mock_current_user.has_role.assert_called_once_with("manage")
-        self.model_class.assert_not_called()
-        self.form_class.return_value.populate_obj.assert_not_called()
-        self.form_class.return_value.process.assert_not_called()
-        self.mock_db.session.add.assert_not_called()
-        self.mock_db.session.commit.assert_not_called()
-        self.mock_abort.assert_not_called()
-        self.mock_flash.assert_called_once_with(
-            "Unable to Undelete JournalBaseModelMock", category="error"
-        )
-        self.mock_render_form.assert_called_once_with(
-            form=self.form_class.return_value, model=self.model_class
-        )
-        self.mock_redirect.assert_not_called()
-        self.mock_url_for.assert_not_called()
+        match form_action:
+            case "Create":
+                assert form_class().obj == form_class().populated
+            case "Update":
+                assert form_class().obj is model
+                assert form_class().obj == form_class().populated
+            case "Delete":
+                assert form_class().obj is model
+                assert isinstance(model.deleted_at, datetime)
+            case "Undelete" if flash.expected["category"] != "error":
+                assert model.deleted_at is None
+            case _:
+                assert form_class().obj is model
+        assert flash.called == flash.expected

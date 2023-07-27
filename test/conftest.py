@@ -67,7 +67,7 @@ def userdatastore(app: Flask, db: SQLAlchemy) -> datastore:
 
 @pytest.fixture(params=[user["email"] for user in security_config["users"]])
 def user(userdatastore: datastore, request: pytest.FixtureRequest) -> User:
-    return security.datastore.find_user(email=request.param)
+    return userdatastore.find_user(email=request.param)
 
 
 @pytest.fixture
@@ -75,7 +75,7 @@ def logged_in_user_context(
     app: Flask, userdatastore: datastore, request: pytest.FixtureRequest
 ) -> None:
     with app.test_request_context():
-        u: User = User.query.filter_by(email=request.param).first()
+        u: User = userdatastore.find_user(email=request.param)
         if u is None:
             u = AnonymousUser()
         g._login_user = u

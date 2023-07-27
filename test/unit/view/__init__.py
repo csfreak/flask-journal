@@ -105,21 +105,35 @@ class MockModel:
     deleted_at: datetime = None
     _user: User
 
+    def __init__(self: t.Self, **kwargs: t.Any) -> None:
+        self._user = kwargs.get("user")
+
     @property
     def user(self: t.Self) -> t.Any:
         return self._user
+
+    def delete(self: t.Self) -> None:
+        self.deleted_at = datetime.now()
+
+    def undelete(self: t.Self) -> None:
+        self.deleted_at = None
 
 
 class MockForm:
     _valid: bool = False
 
     def __init__(self: t.Any, *args: t.Any, **kwargs: t.Any) -> None:
-        self.args = args
+        if not hasattr(self, "args"):
+            self.args = []
+        self.args.extend(args)
+        if not hasattr(self, "populated"):
+            self.populated = None
         if not hasattr(self, "data"):
             self.data = {}
         self.process(**kwargs)
 
     def populate_obj(self: t.Self, obj: Model) -> None:
+        logger.debug("populate obj %s from form", obj)
         self.populated = obj
         obj.data = self.data
 
@@ -127,5 +141,32 @@ class MockForm:
         return self._valid
 
     def process(self: t.Self, **kwargs: t.Any) -> None:
+        logger.debug("proccess form data %s", kwargs)
         for k, v in kwargs.items():
             setattr(self, k, v)
+
+
+class MockSession:
+    def add(self: t.Self, obj: Model) -> None:
+        if not Model:
+            raise ValueError("add called without obj")
+        self.add = obj
+
+    def commit(self: t.Self) -> None:
+        if not hasattr(self, "add"):
+            raise ValueError("commit called without add")
+
+
+class MockDB:
+    def __init__(self: t.Self) -> None:
+        self.session = MockSession()
+
+
+class MockFlash:
+    def __init__(self: t.Self, **kwargs: str) -> None:
+        self.called = {}
+        self.expected = kwargs if kwargs else {}
+
+    def flash(self: t.Self, message: str, **kwargs: t.Any) -> None:
+        self.called.update(kwargs)
+        self.called.update(message=message)
