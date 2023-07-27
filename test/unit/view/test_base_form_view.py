@@ -1,10 +1,86 @@
+import logging
 import typing as t
 from unittest import TestCase
 
+import pytest
 from mock import MagicMock, patch
 from werkzeug.exceptions import HTTPException
 
 from flask_journal.views import base as base_view
+
+from . import Form, Model
+
+logger = logging.getLogger(__name__)
+
+
+@pytest.fixture
+def obj_id(
+    monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest
+) -> int | None:
+    def get_id() -> int | None:
+        return request.param
+
+    logger.debug("patching request_id as %s", request.param)
+    monkeypatch.setattr(base_view.utils, "process_request_id", get_id)
+    return request.param
+
+
+@pytest.fixture(autouse=True)
+def render_form(monkeypatch: pytest.MonkeyPatch) -> None:
+    def mock_render_form(**kwargs: t.Any) -> dict[str, t.Any]:
+        return kwargs
+
+    logging.debug("patching render_form")
+    monkeypatch.setattr(base_view, "render_form", mock_render_form)
+
+
+@pytest.fixture
+def flash(monkeypatch: pytest.MonkeyPatch) -> dict[str : t.Any]:
+    response: dict[str, t.Any] = {}
+
+    def mock_flash(message: str, **kwargs: t.Any) -> None:
+        response.update(kwargs)
+        response.update(message=message)
+
+    logger.debug("patching flash")
+    monkeypatch.setattr(base_view, "flash", mock_flash)
+    yield response
+
+
+@pytest.mark.parametrize("obj_id", [None, 1], indirect=True)
+@pytest.mark.parametrize(
+    "logged_in_user_context", ["user3@example.test"], indirect=True
+)
+@pytest.mark.usefixtures("logged_in_user_context")
+def test_get(
+    model_class: Model, obj_id: None, form_class: Form, flash: dict[str, t.Any]
+) -> None:
+    model = None
+    expected_rf = {"form": form_class(), "model": model_class, "action": "new"}
+    if obj_id:
+        model = model_class()
+        model.id = obj_id
+        model_class.query._items = [model]
+        expected_rf.pop("action")
+
+    rf = base_view.form_view(model_class, form_class, "")
+    assert rf == expected_rf
+    assert form_class().obj is model
+
+
+@pytest.mark.parametrize("obj_id", [1], indirect=True)
+@pytest.mark.parametrize(
+    "logged_in_user_context", ["user3@example.test"], indirect=True
+)
+@pytest.mark.usefixtures("logged_in_user_context")
+def test_get_fail(
+    model_class: Model, obj_id: None, form_class: Form, flash: dict[str, t.Any]
+) -> None:
+    expected_rf = {"form": form_class(), "model": model_class, "action": "new"}
+    if obj_id:
+        expected_rf.pop("action")
+    with pytest.raises(HTTPException):
+        base_view.form_view(model_class, form_class, "")
 
 
 class FormViewFunctionTest(TestCase):
@@ -34,79 +110,6 @@ class FormViewFunctionTest(TestCase):
     def tearDown(self: t.Self) -> None:
         patch.stopall()
         return super().tearDown()
-
-    def test_id_none_get(self: t.Self) -> None:
-        self.mock_utils.process_request_id.return_value = None
-        self.form_class.return_value.validate_on_submit.return_value = False
-        base_view.form_view(self.model_class, self.form_class, "")
-        self.mock_utils.process_request_id.assert_called_once_with()
-        self.mock_utils.build_query.assert_called_once_with(
-            model=self.model_class, filters={"id": None}
-        )
-        self.mock_utils.build_query.return_value.first.assert_called_once_with()
-        self.form_class.assert_called_once_with(
-            obj=self.mock_utils.build_query.return_value.first.return_value
-        )
-        self.form_class.return_value.validate_on_submit.assert_called_once_with()
-        self.mock_render_form.assert_called_once_with(
-            action="new", form=self.form_class.return_value, model=self.model_class
-        )
-        self.mock_redirect.assert_not_called()
-        self.mock_db.session.add.assert_not_called()
-        self.mock_db.session.commit.assert_not_called()
-        self.mock_flash.assert_not_called()
-        self.mock_abort.assert_not_called()
-        self.model_class.assert_not_called()
-        self.mock_url_for.assert_not_called()
-
-    def test_id_set_get(self: t.Self) -> None:
-        self.mock_utils.process_request_id.return_value = 1
-        self.form_class.return_value.validate_on_submit.return_value = False
-        base_view.form_view(self.model_class, self.form_class, "")
-        self.mock_utils.process_request_id.assert_called_once_with()
-        self.mock_utils.build_query.assert_called_once_with(
-            model=self.model_class, filters={"id": 1}
-        )
-        self.mock_utils.build_query.return_value.first.assert_called_once_with()
-        self.form_class.assert_called_once_with(
-            obj=self.mock_utils.build_query.return_value.first.return_value
-        )
-        self.form_class.return_value.validate_on_submit.assert_called_once_with()
-        self.mock_render_form.assert_called_once_with(
-            form=self.form_class.return_value, model=self.model_class
-        )
-        self.mock_redirect.assert_not_called()
-        self.mock_db.session.add.assert_not_called()
-        self.mock_db.session.commit.assert_not_called()
-        self.mock_flash.assert_not_called()
-        self.mock_abort.assert_not_called()
-        self.model_class.assert_not_called()
-        self.mock_url_for.assert_not_called()
-
-    def test_id_set_object_none_get(self: t.Self) -> None:
-        self.mock_utils.build_query.return_value.first.return_value = None
-        self.form_class.return_value.validate_on_submit.return_value = False
-        try:
-            base_view.form_view(self.model_class, self.form_class, "")
-        except HTTPException:
-            self.mock_abort.assert_called_once_with(404)
-        else:
-            self.fail("abort not called")
-        self.mock_utils.process_request_id.assert_called_once_with()
-        self.mock_utils.build_query.assert_called_once_with(
-            model=self.model_class,
-            filters={"id": self.mock_utils.process_request_id.return_value},
-        )
-        self.mock_utils.build_query.return_value.first.assert_called_once_with()
-        self.form_class.assert_called_once_with(obj=None)
-        self.form_class.return_value.validate_on_submit.assert_called_once_with()
-        self.mock_render_form.assert_not_called()
-        self.mock_redirect.assert_not_called()
-        self.mock_db.session.add.assert_not_called()
-        self.mock_db.session.commit.assert_not_called()
-        self.mock_flash.assert_not_called()
-        self.model_class.assert_not_called()
-        self.mock_url_for.assert_not_called()
 
     def test_id_none_create(self: t.Self) -> None:
         self.mock_utils.process_request_id.return_value = None

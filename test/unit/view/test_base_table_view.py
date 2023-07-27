@@ -5,34 +5,12 @@ from datetime import datetime
 import pytest
 from flask import Flask
 
-# from flask_journal.models.base import JournalBaseModel
 from flask_journal.views import base as base_view
 
 from ...config import html_test_strings
-from . import MockModel, MockQuery, Model
-
-# from mock import MagicMock, patch
+from . import MockModel, Model
 
 logger = logging.getLogger(__name__)
-
-
-@pytest.fixture
-def route(app: Flask) -> str:
-    route = "/tests"
-
-    @app.route(route)
-    def test() -> None:
-        pass
-
-    return route
-
-
-@pytest.fixture
-def model_class() -> MockModel:
-    class model(MockModel):
-        query = MockQuery()
-
-    return model
 
 
 @pytest.fixture

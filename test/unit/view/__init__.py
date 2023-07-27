@@ -6,6 +6,7 @@ from math import ceil
 from flask_journal.models import User
 
 Model = t.TypeVar("Model", bound="MockModel")
+Form = t.TypeVar("Form", bound="MockForm")
 logger = logging.getLogger(__name__)
 
 
@@ -63,7 +64,7 @@ class MockQuery:
     include_deleted: bool = False
     order_field: bool = False
     order_desc: bool = False
-    _items: list[Model]
+    _items: list[Model] = []
 
     def __init__(self: t.Self) -> None:
         logger.debug("Initialize New MockQuery")
@@ -93,6 +94,9 @@ class MockQuery:
         logger.debug("Return new MockPagination")
         return MockPagination(page, per_page, self._items)
 
+    def first(self: t.Self) -> Model:
+        return self._items[0] if self._items else None
+
 
 class MockModel:
     query = MockQuery()
@@ -104,3 +108,24 @@ class MockModel:
     @property
     def user(self: t.Self) -> t.Any:
         return self._user
+
+
+class MockForm:
+    _valid: bool = False
+
+    def __init__(self: t.Any, *args: t.Any, **kwargs: t.Any) -> None:
+        self.args = args
+        if not hasattr(self, "data"):
+            self.data = {}
+        self.process(**kwargs)
+
+    def populate_obj(self: t.Self, obj: Model) -> None:
+        self.populated = obj
+        obj.data = self.data
+
+    def validate_on_submit(self: t.Self) -> bool:
+        return self._valid
+
+    def process(self: t.Self, **kwargs: t.Any) -> None:
+        for k, v in kwargs.items():
+            setattr(self, k, v)
