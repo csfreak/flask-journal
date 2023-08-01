@@ -6,9 +6,9 @@ from flask.testing import FlaskClient
 from flask_journal import models
 from flask_journal.views.themes import Theme
 
-from ..base import AppClientTestBase
-from ..config import html_test_strings
-from ..utils import authenticate
+from ...base import AppClientTestBase
+from ...config import html_test_strings
+from ...utils import authenticate
 
 
 class HomeViewClientTest(AppClientTestBase):
