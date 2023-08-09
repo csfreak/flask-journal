@@ -25,6 +25,8 @@ def app() -> Flask:
 
     with app.app_context():
         yield app
+    logger.debug("Teardown App")
+    del app
 
 
 @pytest.fixture
@@ -32,6 +34,7 @@ def client(app: Flask) -> FlaskClient:
     logger.debug("Initialize Client")
     with app.test_client() as client:
         yield client
+    logger.debug("Teardown Client")
 
 
 @pytest.fixture
@@ -45,10 +48,11 @@ def db(app: Flask) -> SQLAlchemy:
 
 @pytest.fixture
 def userdatastore(app: Flask, db: SQLAlchemy) -> datastore:
+    logger.debug("Initialize userdatastore")
     for user in security_config["users"]:
         enorm = security._mail_util.validate(user["email"])
         pbad, pnorm = security._password_util.validate(user["password"], True)
-
+        logger.debug("Add user %s", enorm)
         security.datastore.create_user(
             email=enorm,
             password=pnorm,
@@ -62,7 +66,7 @@ def userdatastore(app: Flask, db: SQLAlchemy) -> datastore:
         for role in user["roles"]:
             security.datastore.add_role_to_user(u, role)
     db.session.commit()
-    return security.datastore
+    yield security.datastore
 
 
 @pytest.fixture(params=[user["email"] for user in security_config["users"]])
@@ -78,8 +82,10 @@ def logged_in_user_context(
         u: User = userdatastore.find_user(email=request.param)
         if u is None:
             u = AnonymousUser()
+        logger.debug("Push new request_context with user %s logged in", u)
         g._login_user = u
         yield None
+        g._login_user = AnonymousUser()
 
 
 @pytest.fixture
@@ -96,6 +102,8 @@ def logged_in_user_client(
             break
     else:
         raise ValueError("email not found in security config: %s" % request.email)
+    logger.debug("Client logged in as %s", request.param)
     yield client
     client.get("/auth/logout")
+    logger.debug("Client %s logged out", request.param)
     client.delete_cookie("session")

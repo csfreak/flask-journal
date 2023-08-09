@@ -3,8 +3,6 @@ import typing as t
 from datetime import datetime
 from math import ceil
 
-from flask_journal.models import User
-
 Model = t.TypeVar("Model", bound="MockModel")
 Form = t.TypeVar("Form", bound="MockForm")
 logger = logging.getLogger(__name__)
@@ -103,14 +101,11 @@ class MockModel:
     id: int = None
     created_at: datetime = None
     deleted_at: datetime = None
-    _user: User
 
     def __init__(self: t.Self, **kwargs: t.Any) -> None:
-        self._user = kwargs.get("user")
-
-    @property
-    def user(self: t.Self) -> t.Any:
-        return self._user
+        logger.debug("Initialize new MockModel")
+        self.user = kwargs.get("user")
+        self.created_at = kwargs.get("created_at", datetime.now())
 
     def delete(self: t.Self) -> None:
         self.deleted_at = datetime.now()
@@ -123,6 +118,7 @@ class MockForm:
     _valid: bool = False
 
     def __init__(self: t.Any, *args: t.Any, **kwargs: t.Any) -> None:
+        logger.debug("Initialize new MockForm")
         if not hasattr(self, "args"):
             self.args = []
         self.args.extend(args)
@@ -147,6 +143,9 @@ class MockForm:
 
 
 class MockSession:
+    def __init__(self: t.Self) -> None:
+        logger.debug("Initialize new MockSession")
+
     def add(self: t.Self, obj: Model) -> None:
         if not Model:
             raise ValueError("add called without obj")
@@ -159,6 +158,7 @@ class MockSession:
 
 class MockDB:
     def __init__(self: t.Self) -> None:
+        logger.debug("Initialize new MockDB")
         self.session = MockSession()
 
 
@@ -166,6 +166,7 @@ class MockFlash:
     def __init__(self: t.Self, **kwargs: str) -> None:
         self.called = {}
         self.expected = kwargs if kwargs else {}
+        logger.debug("Initialize new MockFlash")
 
     def flash(self: t.Self, message: str, **kwargs: t.Any) -> None:
         self.called.update(kwargs)
