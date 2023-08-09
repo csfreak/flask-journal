@@ -70,7 +70,7 @@ jobs:
           pip install -r test/requirements.txt
       - name: Tests
         run: |
-          py.test --cov-report=xml
+          py.test --cov-report=xml --debug
 
       - name: Pytest coverage comment
         uses: MishaKav/pytest-coverage-comment@main
