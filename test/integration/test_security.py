@@ -177,7 +177,7 @@ class SecurityUserTest(AppTestBase):
                         },
                     )
                     self.assertIn(
-                        html_test_strings["security"]["error"]["email_confirm"], rv.text
+                        html_test_strings["security"]["error"]["generic"], rv.text
                     )
                     self.assertIn(html_test_strings["title"] % "Login", rv.text)
 
