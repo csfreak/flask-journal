@@ -67,8 +67,10 @@ def test_form_submit_action(app: Flask, action: str) -> None:
 )
 @pytest.mark.parametrize("user", ["user3@example.test"], indirect=True)
 @pytest.mark.usefixtures("logged_in_user_context")
-def test_build_query_user_no_filters(app: Flask, user: User) -> None:
-    r_query = view_utils.build_query(MockModel)
+def test_build_query_user_no_filters(
+    app: Flask, user: User, model_class: MockModel
+) -> None:
+    r_query = view_utils.build_query(model_class)
 
     assert r_query.filter == dict(user=user)
     assert not r_query.include_deleted
@@ -78,8 +80,8 @@ def test_build_query_user_no_filters(app: Flask, user: User) -> None:
     "logged_in_user_context", ["user2@example.test"], indirect=True
 )
 @pytest.mark.usefixtures("logged_in_user_context")
-def test_build_query_user_manage(app: Flask) -> None:
-    r_query = view_utils.build_query(MockModel)
+def test_build_query_user_manage(app: Flask, model_class: MockModel) -> None:
+    r_query = view_utils.build_query(model_class)
 
     assert r_query.include_deleted
 
@@ -90,9 +92,9 @@ def test_build_query_user_manage(app: Flask) -> None:
 @pytest.mark.parametrize("user", ["user3@example.test"], indirect=True)
 @pytest.mark.usefixtures("logged_in_user_context")
 def test_build_query_user_filters(
-    app: Flask, user: User, monkeypatch: pytest.MonkeyPatch
+    app: Flask, user: User, monkeypatch: pytest.MonkeyPatch, model_class: MockModel
 ) -> None:
-    r_query = view_utils.build_query(MockModel, filters={"id": 1})
+    r_query = view_utils.build_query(model_class, filters={"id": 1})
 
     assert r_query.filter == dict(user=user, id=1)
     assert not r_query.include_deleted
@@ -108,12 +110,12 @@ def test_build_query_user_filters(
 )
 @pytest.mark.usefixtures("logged_in_user_context")
 def test_build_query_user_no_user_model(
-    app: Flask, user: User, monkeypatch: pytest.MonkeyPatch
+    app: Flask, user: User, monkeypatch: pytest.MonkeyPatch, model_class: MockModel
 ) -> None:
-    monkeypatch.delattr(MockModel, "user")
+    monkeypatch.delattr(model_class, "user")
     if not user.has_role("admin"):
         with pytest.raises(HTTPException):
-            view_utils.build_query(MockModel)
+            view_utils.build_query(model_class)
     else:
-        r_query = view_utils.build_query(MockModel)
+        r_query = view_utils.build_query(model_class)
         assert r_query.filter == dict()

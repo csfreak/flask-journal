@@ -14,10 +14,12 @@ logger = logging.getLogger(__name__)
 
 
 @pytest.fixture
-def table_results(request: pytest.FixtureRequest) -> list[Model]:
+def table_results(
+    request: pytest.FixtureRequest, model_class: MockModel
+) -> list[Model]:
     results: list[Model] = []
     for i in range(request.param):
-        m = MockModel()
+        m = model_class()
         m.id = i + 1
         m.created_at = datetime.now()
         m.deleted_at = None
