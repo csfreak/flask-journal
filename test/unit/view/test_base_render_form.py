@@ -65,7 +65,7 @@ def test_actions(
 
 
 @pytest.mark.parametrize(
-    "logged_in_user_context", ["user3@example.test"], indirect=True
+    "user", ["user3@example.test"], indirect=True
 )
 @pytest.mark.parametrize("action", ["view", "new", "edit"])
 @pytest.mark.usefixtures("logged_in_user_context")
@@ -79,7 +79,7 @@ def test_actions_render(action: str) -> None:
 
 
 @pytest.mark.parametrize(
-    "logged_in_user_context", ["user3@example.test"], indirect=True
+    "user", ["user3@example.test"], indirect=True
 )
 @pytest.mark.parametrize("action", ["view", "new", "edit"])
 @pytest.mark.parametrize("button", view_form_action_buttons["all"])
@@ -95,7 +95,7 @@ def test_actions_render_button(action: str, button: str) -> None:
 
 
 @pytest.mark.parametrize(
-    "logged_in_user_context", ["user3@example.test"], indirect=True
+    "user", ["user3@example.test"], indirect=True
 )
 @pytest.mark.parametrize("action", ["view", "new", "edit"])
 @pytest.mark.usefixtures("logged_in_user_context")
@@ -111,7 +111,7 @@ def test_actions_render_columns(action: str) -> None:
 
 
 @pytest.mark.parametrize(
-    "logged_in_user_context", ["user3@example.test"], indirect=True
+    "user", ["user3@example.test"], indirect=True
 )
 @pytest.mark.parametrize("button", view_form_action_buttons["all"])
 @pytest.mark.usefixtures("logged_in_user_context")

@@ -75,35 +75,31 @@ def user(userdatastore: datastore, request: pytest.FixtureRequest) -> User:
 
 
 @pytest.fixture
-def logged_in_user_context(
-    app: Flask, userdatastore: datastore, request: pytest.FixtureRequest
-) -> None:
+def logged_in_user_context(app: Flask, user: User) -> None:
     with app.test_request_context():
-        u: User = userdatastore.find_user(email=request.param)
-        if u is None:
-            u = AnonymousUser()
-        logger.debug("Push new request_context with user %s logged in", u)
-        g._login_user = u
+        if user is None:
+            user = AnonymousUser()
+        logger.debug("Push new request_context with user %s logged in", user)
+        g._login_user = user
         yield None
         g._login_user = AnonymousUser()
 
 
 @pytest.fixture
-def logged_in_user_client(
-    client: FlaskClient, userdatastore: datastore, request: pytest.FixtureRequest
-) -> FlaskClient:
+def logged_in_user_client(client: FlaskClient, user: User) -> FlaskClient:
     client.get("/auth/login")
-    for user in security_config["users"]:
-        if user["email"] == request.param:
-            client.post(
-                "/auth/login",
-                data={"email": user["email"], "password": user["password"]},
-            )
-            break
+    if user:
+        client.post(
+            "/auth/login",
+            data={
+                "email": user.email,
+                "password": user.password,
+            },
+        )
     else:
-        raise ValueError("email not found in security config: %s" % request.email)
-    logger.debug("Client logged in as %s", request.param)
+        raise ValueError("user not found: %s" % user)
+    logger.debug("Client logged in as %s", user)
     yield client
     client.get("/auth/logout")
-    logger.debug("Client %s logged out", request.param)
+    logger.debug("Client %s logged out", user)
     client.delete_cookie("session")

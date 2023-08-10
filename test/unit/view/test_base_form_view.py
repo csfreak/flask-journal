@@ -65,9 +65,7 @@ def error(request: pytest.FixtureRequest) -> Exception | None:
 
 
 @pytest.mark.parametrize("obj_id", [None, 1], indirect=True)
-@pytest.mark.parametrize(
-    "logged_in_user_context", ["user3@example.test"], indirect=True
-)
+@pytest.mark.parametrize("user", ["user3@example.test"], indirect=True)
 @pytest.mark.usefixtures("logged_in_user_context")
 def test_get(model_class: Model, obj_id: None, form_class: Form) -> None:
     model = None
@@ -85,7 +83,7 @@ def test_get(model_class: Model, obj_id: None, form_class: Form) -> None:
 
 @pytest.mark.parametrize("obj_id", [1], indirect=True)
 @pytest.mark.parametrize(
-    "logged_in_user_context", ["user3@example.test"], indirect=True
+    "user", ["user3@example.test"], indirect=True
 )
 @pytest.mark.usefixtures("logged_in_user_context")
 def test_get_fail(model_class: Model, obj_id: None, form_class: Form) -> None:
@@ -97,7 +95,7 @@ def test_get_fail(model_class: Model, obj_id: None, form_class: Form) -> None:
 
 
 @pytest.mark.parametrize(
-    ("logged_in_user_context", "obj_id", "form_action", "flash", "error"),
+    ("user", "obj_id", "form_action", "flash", "error"),
     [
         (
             "user3@example.test",

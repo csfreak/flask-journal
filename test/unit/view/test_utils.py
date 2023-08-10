@@ -62,9 +62,6 @@ def test_form_submit_action(app: Flask, action: str) -> None:
         assert r_action == action
 
 
-@pytest.mark.parametrize(
-    "logged_in_user_context", ["user3@example.test"], indirect=True
-)
 @pytest.mark.parametrize("user", ["user3@example.test"], indirect=True)
 @pytest.mark.usefixtures("logged_in_user_context")
 def test_build_query_user_no_filters(
@@ -76,9 +73,7 @@ def test_build_query_user_no_filters(
     assert not r_query.include_deleted
 
 
-@pytest.mark.parametrize(
-    "logged_in_user_context", ["user2@example.test"], indirect=True
-)
+@pytest.mark.parametrize("user", ["user2@example.test"], indirect=True)
 @pytest.mark.usefixtures("logged_in_user_context")
 def test_build_query_user_manage(app: Flask, model_class: MockModel) -> None:
     r_query = view_utils.build_query(model_class)
@@ -86,9 +81,6 @@ def test_build_query_user_manage(app: Flask, model_class: MockModel) -> None:
     assert r_query.include_deleted
 
 
-@pytest.mark.parametrize(
-    "logged_in_user_context", ["user3@example.test"], indirect=True
-)
 @pytest.mark.parametrize("user", ["user3@example.test"], indirect=True)
 @pytest.mark.usefixtures("logged_in_user_context")
 def test_build_query_user_filters(
@@ -101,11 +93,8 @@ def test_build_query_user_filters(
 
 
 @pytest.mark.parametrize(
-    ("logged_in_user_context", "user"),
-    [
-        ("user3@example.test", "user3@example.test"),
-        ("user1@example.test", "user1@example.test"),
-    ],
+    "user",
+    ["user3@example.test", "user1@example.test"],
     indirect=True,
 )
 @pytest.mark.usefixtures("logged_in_user_context")

@@ -5,23 +5,59 @@ import pytest
 # from flask import Flask
 from flask.testing import FlaskClient
 
+from flask_journal import models
+
 from ...config import html_test_strings
 
-# from flask_journal import models
 # from flask_journal.views.themes import Theme
 
 
+@pytest.fixture
+def entries(request: pytest.FixtureRequest, user: models.User) -> list[models.Entry]:
+    entries: list[models.Entry] = []
+    for i in range(request.param):
+        entry = models.Entry()
+        entry.title = f"TestEntry {i}"
+        entry.content = "lorem ipsum"
+        entry.user = user
+        if i % 2:
+            entry.delete()
+        models.db.session.add(entry)
+        entries.append(entry)
+    models.db.session.commit()
+    return entries
+
+
 @pytest.mark.parametrize(
-    "logged_in_user_client",
-    ["user2@example.test", "user3@example.test"],
+    ("user", "entries"),
+    [
+        ("user2@example.test", 4),
+        ("user3@example.test", 4),
+    ],
     indirect=True,
     ids=["manage", "user"],
 )
-def test_entries_view(logged_in_user_client: FlaskClient) -> None:
+def test_entries_view(
+    logged_in_user_client: FlaskClient, user: models.User, entries: list[models.Entry]
+) -> None:
     rv = logged_in_user_client.get("/entries")
+    entries = (
+        models.Entry.query.filter_by(user=user)
+        .execution_options(include_deleted=True)
+        .all()
+    )
     assert rv.status_code == 200
     assert html_test_strings["title"] % "Entries" in rv.text
-    # self.assertNotIn("deleted_record", rv.text)
+    if user.has_role("manage"):
+        assert "deleted_record" in rv.text
+        for entry in entries:
+            assert entry.title in rv.text
+    else:
+        for entry in entries:
+            if entry.active:
+                assert entry.title in rv.text
+            else:
+                assert entry.title not in rv.text
 
 
 # def test_entry_view_manage(client: FlaskClient) -> None:
@@ -341,41 +377,3 @@ def test_entries_view(logged_in_user_client: FlaskClient) -> None:
 #     rv = client.post("/entry?id=%i" % id, data={"Undelete": "Undelete"})
 #     self.assertStatus(rv, 404)
 #     self.assertIsNone(models.Entry.query.filter_by(id=id).first())
-
-
-# class UserSettingsViewClientTest(AppClientTestBase):
-# def test_settings_view(client: FlaskClient) -> None:
-#     email = "user1@example.test"
-#     authenticate(client, email)
-#     rv = client.get("/settings")
-#     assert rv.status_code == 200
-#     assert html_test_strings["title"] % "Settings" in rv.text
-#     assert html_test_strings["settings"]["select"] in rv.text
-#     self.assertIn(
-#         html_test_strings["settings"]["selected"] % ("default", "default"), rv.text
-#     )
-#     for theme in list(Theme):
-#         if theme != "default":
-#             self.assertIn(
-#                 html_test_strings["settings"]["option"] % (theme, theme), rv.text
-#             )
-
-# def test_settings_post(client: FlaskClient) -> None:
-#     email = "user1@example.test"
-#     authenticate(client, email)
-#     for theme in list(Theme):
-#         with self.subTest(theme=str(theme)):
-#             rv = client.post("/settings", data={"Theme": theme, "Update": "Update"})
-#             assert html_test_strings["title"] % "Settings" in rv.text
-#             self.assertIn(
-#                 html_test_strings["settings"]["selected"] % (theme, theme), rv.text
-#             )
-#             if str(theme) == "default":
-#                 self.assertIn(
-#                     html_test_strings["settings"]["css"]["default"], rv.text
-#                 )
-#             else:
-#                 self.assertIn(
-#                     html_test_strings["settings"]["css"]["bootswatch"] % theme,
-#                     rv.text,
-#                 )

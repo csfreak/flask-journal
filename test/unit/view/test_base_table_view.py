@@ -37,9 +37,7 @@ def table_results(
     ],
     ids=["title", "table_base", "table_pager", "table_create"],
 )
-@pytest.mark.parametrize(
-    "logged_in_user_context", ["user3@example.test"], indirect=True
-)
+@pytest.mark.parametrize("user", ["user3@example.test"], indirect=True)
 @pytest.mark.usefixtures("logged_in_user_context")
 def test_no_results(
     app: Flask, route: str, model_class: MockModel, test_string: str
@@ -52,9 +50,7 @@ def test_no_results(
         assert test_string in rv
 
 
-@pytest.mark.parametrize(
-    "logged_in_user_context", ["user3@example.test"], indirect=True
-)
+@pytest.mark.parametrize("user", ["user3@example.test"], indirect=True)
 @pytest.mark.parametrize("table_results", [1, 9], indirect=True)
 @pytest.mark.usefixtures("logged_in_user_context")
 def test_1_page_result(
@@ -81,9 +77,7 @@ def test_1_page_result(
             ), ("missing row %d data" % item.id)
 
 
-@pytest.mark.parametrize(
-    "logged_in_user_context", ["user3@example.test"], indirect=True
-)
+@pytest.mark.parametrize("user", ["user3@example.test"], indirect=True)
 @pytest.mark.parametrize("table_results", [11, 20], indirect=True)
 @pytest.mark.parametrize("page_number", [1, 2])
 @pytest.mark.usefixtures("logged_in_user_context")
@@ -120,9 +114,7 @@ def test_2_page_result(
                 ), ("extra row %d data" % item.id)
 
 
-@pytest.mark.parametrize(
-    "logged_in_user_context", ["user3@example.test"], indirect=True
-)
+@pytest.mark.parametrize("user", ["user3@example.test"], indirect=True)
 @pytest.mark.parametrize("order_field", [None, "id", "created_at", "invalid"])
 @pytest.mark.usefixtures("logged_in_user_context")
 def test_order_field(
@@ -141,9 +133,7 @@ def test_order_field(
             assert model_class.query.order_field
 
 
-@pytest.mark.parametrize(
-    "logged_in_user_context", ["user3@example.test"], indirect=True
-)
+@pytest.mark.parametrize("user", ["user3@example.test"], indirect=True)
 @pytest.mark.parametrize("order_field", [None, "id", "created_at", "invalid"])
 @pytest.mark.usefixtures("logged_in_user_context")
 def test_order_field_descending(
