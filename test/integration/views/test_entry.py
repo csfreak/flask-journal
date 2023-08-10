@@ -60,132 +60,98 @@ def test_entries_view(
                 assert entry.title not in rv.text
 
 
-# def test_entry_view_manage(client: FlaskClient) -> None:
-#     email = "user2@example.test"
-#     entry = models.Entry()
-#     entry.title = "entry"
-#     entry.content = "lorem ipsum"
-#     entry.user_id = 2
-#     models.db.session.add(entry)
-#     models.db.session.commit()
-#     authenticate(client, email)
-#     rv = client.get("/entry?id=%i" % entry.id)
-#     assert rv.status_code == 200
-#     assert html_test_strings["title"] % "View Entry" in rv.text
+@pytest.mark.parametrize(
+    "user",
+    ["user1@example.test", "user2@example.test", "user3@example.test"],
+    ids=["admin", "manage", "user"],
+    indirect=True,
+)
+@pytest.mark.parametrize("entries", [1], ids=["single"], indirect=True)
+def test_entry_view(
+    logged_in_user_client: FlaskClient, entries: list[models.Entry]
+) -> None:
+    rv = logged_in_user_client.get("/entry?id=%i" % entries[0].id)
+    assert rv.status_code == 200
+    assert html_test_strings["title"] % "View Entry" in rv.text
 
-# def test_entry_view_user(client: FlaskClient) -> None:
-#     email = "user3@example.test"
-#     authenticate(client, email)
-#     entry = models.Entry()
-#     entry.title = "entry"
-#     entry.content = "lorem ipsum"
-#     entry.user_id = 3
-#     models.db.session.add(entry)
-#     models.db.session.commit()
-#     rv = client.get("/entry?id=%i" % entry.id)
-#     assert rv.status_code == 200
-#     assert html_test_strings["title"] % "View Entry" in rv.text
 
-# def test_entry_view_user_others_entry(
-#     client: FlaskClient
-# ) -> None:
-#     email = "user3@example.test"
-#     authenticate(client, email)
-#     entry = models.Entry()
-#     entry.title = "entry"
-#     entry.content = "lorem ipsum"
-#     entry.user_id = 1
-#     models.db.session.add(entry)
-#     models.db.session.commit()
-#     rv = client.get("/entry?id=%i" % entry.id)
-#     self.assertStatus(rv, 404)
-#     assert html_test_strings["title"] % "Error" in rv.text
+@pytest.mark.parametrize(
+    "user",
+    ["user1@example.test", "user2@example.test", "user3@example.test"],
+    ids=["admin", "manage", "user"],
+    indirect=True,
+)
+def test_entry_view_others(
+    logged_in_user_client: FlaskClient, user: models.User
+) -> None:
+    entry = models.Entry(title="Entry 1", content="lorem ipsum", user_id=user.id + 1)
+    models.db.session.add(entry)
+    models.db.session.commit()
 
-# def test_entry_create_view_manage(
-#     client: FlaskClient
-# ) -> None:
-#     email = "user2@example.test"
-#     authenticate(client, email)
-#     rv = client.get("/entry")
-#     assert rv.status_code == 200
-#     assert html_test_strings["title"] % "New Entry" in rv.text
+    rv = logged_in_user_client.get("/entry?id=%i" % entry.id)
+    assert rv.status_code == 404
+    assert html_test_strings["title"] % "Error" in rv.text
 
-# def test_entry_create_view_user(
-#     client: FlaskClient
-# ) -> None:
-#     email = "user3@example.test"
-#     authenticate(client, email)
-#     rv = client.get("/entry")
-#     assert rv.status_code == 200
-#     assert html_test_strings["title"] % "New Entry" in rv.text
 
-# def test_entry_create_view_post_user(
-#     client: FlaskClient
-# ) -> None:
-#     email = "user3@example.test"
-#     content = "lorem ipsum"
-#     authenticate(client, email)
-#     rv = client.post(
-#         "/entry",
-#         data={"Title": "entry 1", "Body": content, "Tags": "", "Create": "Create"},
-#     )
-#     assert rv.status_code == 200
-#     assert html_test_strings["title"] % "View Entry" in rv.text
-#     entry = models.Entry.query.first()
-#     self.assertIsInstance(entry, models.Entry)
-#     self.assertEqual(entry.content, content)
-#     self.assertNotEqual(entry.content, entry._data)
+@pytest.mark.parametrize(
+    "user",
+    ["user1@example.test", "user2@example.test", "user3@example.test"],
+    ids=["admin", "manage", "user"],
+    indirect=True,
+)
+def test_entry_create_view(
+    logged_in_user_client: FlaskClient, user: models.User
+) -> None:
+    rv = logged_in_user_client.get("/entry")
+    assert rv.status_code == 200
+    assert html_test_strings["title"] % "New Entry" in rv.text
 
-# def test_entry_create_view_post_new_tags(
-#     client: FlaskClient
-# ) -> None:
-#     email = "user3@example.test"
-#     content = "lorem ipsum"
-#     authenticate(client, email)
-#     rv = client.post(
-#         "/entry",
-#         data={
-#             "Title": "entry 1",
-#             "Body": content,
-#             "Tags": "testtag",
-#             "Create": "Create",
-#         },
-#     )
-#     assert rv.status_code == 200
-#     assert html_test_strings["title"] % "View Entry" in rv.text
-#     entry = models.Entry.query.first()
-#     self.assertIsInstance(entry, models.Entry)
-#     self.assertEqual(entry.content, content)
-#     self.assertNotEqual(entry.content, entry._data)
-#     tag = models.Tag.query.filter_by(name="testtag").first()
-#     self.assertIsInstance(tag, models.Tag)
 
-# def test_entry_create_view_post_existing_tags(
-#     client: FlaskClient
-# ) -> None:
-#     email = "user3@example.test"
-#     content = "lorem ipsum"
-#     user = models.User.query.filter_by(email=email).first()
-#     tag = models.Tag(name="testtag", user=user)
-#     models.db.session.add(tag)
-#     models.db.session.commit()
-#     authenticate(client, email)
-#     rv = client.post(
-#         "/entry",
-#         data={
-#             "Title": "entry 1",
-#             "Body": content,
-#             "Tags": "testtag",
-#             "Create": "Create",
-#         },
-#     )
-#     assert rv.status_code == 200
-#     assert html_test_strings["title"] % "View Entry" in rv.text
-#     entry = models.Entry.query.first()
-#     self.assertIsInstance(entry, models.Entry)
-#     self.assertEqual(entry.content, content)
-#     self.assertNotEqual(entry.content, entry._data)
-#     self.assertIs(entry.tags[0], tag)
+@pytest.mark.parametrize(
+    "user",
+    ["user1@example.test", "user2@example.test", "user3@example.test"],
+    ids=["admin", "manage", "user"],
+    indirect=True,
+)
+@pytest.mark.parametrize(
+    "tags",
+    ["", "existingtag", "newtag", "newtag existingtag"],
+    ids=["no-tag", "existing-tag", "new-tag", "multiple-tags"],
+)
+def test_entry_create_post(
+    logged_in_user_client: FlaskClient, user: models.User, tags: str
+) -> None:
+    expected_title = "Entry 1"
+    expected_body = "lorem ipsum"
+    expected_tags = [tag for tag in tags.split(" ") if tag]
+    for tag in expected_tags:
+        if "existing" in tags:
+            models.db.session.add(models.Tag(user=user, name=tag))
+    models.db.session.commit()
+
+    rv = logged_in_user_client.post(
+        "/entry",
+        data={
+            "Title": expected_title,
+            "Body": expected_body,
+            "Tags": tags,
+            "Create": "Create",
+        },
+    )
+    assert rv.status_code == 200
+    assert html_test_strings["title"] % "View Entry" in rv.text
+    entry = models.Entry.query.first()
+    assert isinstance(entry, models.Entry)
+    assert entry.content == expected_body
+    assert entry.content != entry._data
+    for tag in expected_tags:
+        t = models.Tag.query.filter_by(name=tag, user=user).first()
+        assert isinstance(t, models.Tag)
+        assert t in entry.tags
+
+    for tag in entry.tags:
+        assert tag.name in expected_tags
+
 
 # def test_entry_view_manage_delete(
 #     client: FlaskClient
