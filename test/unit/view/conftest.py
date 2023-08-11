@@ -19,7 +19,7 @@ def model_class() -> MockModel:
     return model
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def route(app: Flask) -> str:
     route = "/tests"
 

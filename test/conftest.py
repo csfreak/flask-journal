@@ -11,6 +11,7 @@ from flask_journal.app import create_app
 from flask_journal.config import Config
 from flask_journal.models import User, UserSettings
 from flask_journal.models import db as db_extension
+from flask_journal.models.setup import init_data
 from flask_journal.security import security
 
 from .config import security_config, test_config
@@ -18,7 +19,7 @@ from .config import security_config, test_config
 logger = logging.getLogger(__name__)
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def app() -> Flask:
     logger.debug("Initialize App")
     app = create_app(Config(mapping=test_config))
@@ -37,13 +38,14 @@ def client(app: Flask) -> FlaskClient:
     logger.debug("Teardown Client")
 
 
-@pytest.fixture
+@pytest.fixture()
 def db(app: Flask) -> SQLAlchemy:
     logger.debug("Initialize DB")
-    db_extension.create_all()
+    init_data(app)
     yield db_extension
     logger.debug("TearDown DB")
     db_extension.drop_all()
+    db_extension.session.remove()
 
 
 @pytest.fixture
