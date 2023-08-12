@@ -35,7 +35,9 @@ class Entry(db.Model):
     def _title_setter(self: t.Self, value: str) -> None:
         self._title = self._encode_data(value)
 
-    def _decode_data(self: t.Self, data: str | bytes) -> str:
+    def _decode_data(self: t.Self, data: str | bytes = None) -> str:
+        if not data:
+            return ""
         b: bytes = base64.b64decode(data)
         if self.encrypted:
             b = self._decrypt(b)  # pragma: no cover

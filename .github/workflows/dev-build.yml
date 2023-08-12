@@ -43,7 +43,7 @@ jobs:
       - name: SetVersion
         id: version
         run: |
-          version=${{ needs.release.outputs.version }}.dev${{ github.sha }}
+          version=${{ steps.release_version.outputs.version }}.dev${{ github.sha }}
           echo $version > VERSION
       - name: Build Image
         id: build_image
@@ -56,7 +56,7 @@ jobs:
           containerfiles: |
             ./Dockerfile
           build-args: |
-            APP_VERSION=${{ needs.release.outputs.version }}
+            APP_VERSION=${{ steps.release_version.outputs.version }}
           oci: true
       # Push the image to GHCR (Image Registry)
       - name: Push To GHCR

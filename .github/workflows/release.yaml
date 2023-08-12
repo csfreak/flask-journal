@@ -51,7 +51,7 @@ jobs:
           containerfiles: |
             ./Dockerfile
           build-args: |
-            APP_VERSION=${{ needs.release.outputs.version }}
+            APP_VERSION=${{ steps.release_version.outputs.version }}
           oci: true
       # Push the image to GHCR (Image Registry)
       - name: Push To GHCR
