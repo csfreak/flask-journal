@@ -15,7 +15,7 @@ from flask_journal.models import UserSettings
 from flask_journal.security import security
 from flask_journal.security.signals import user_init
 
-from ..config import html_test_strings
+from ..config import html_test_strings, security_config
 
 
 def test_app_security_instance(app: Flask) -> None:
@@ -36,6 +36,11 @@ def test_datastore_create_user(emptydatastore: datastore, user_config: dict) -> 
     assert verify_and_update_password(user_config["password"], u)
 
 
+@pytest.mark.parametrize(
+    "user_config",
+    [security_config["users"][2]],
+    ids=[security_config["users"][2]["email"]],
+)
 def test_datastore_register_user(
     app: Flask, outbox: list, user_config: dict, emptydatastore: datastore
 ) -> None:
@@ -64,6 +69,11 @@ def test_datastore_create_role(
     assert r.name == role_config["name"]
 
 
+@pytest.mark.parametrize(
+    "user_config",
+    [security_config["users"][2]],
+    ids=[security_config["users"][2]["email"]],
+)
 def test_user_has_role(emptydatastore: datastore, user_config: dict) -> None:
     enorm = security._mail_util.validate(user_config["email"])
     pbad, pnorm = security._password_util.validate(user_config["password"], True)
@@ -81,6 +91,11 @@ def test_user_has_role(emptydatastore: datastore, user_config: dict) -> None:
         assert u.has_role(role)
 
 
+@pytest.mark.parametrize(
+    "user_config",
+    [security_config["users"][2]],
+    ids=[security_config["users"][2]["email"]],
+)
 def test_user_missing_role(emptydatastore: datastore, user_config: dict) -> None:
     enorm = security._mail_util.validate(user_config["email"])
     pbad, pnorm = security._password_util.validate(user_config["password"], True)
@@ -180,6 +195,7 @@ def test_context_processors(client: FlaskClient, endpoint: str) -> None:
     assert html_test_strings["title"] % title in rv.text
 
 
+@pytest.mark.parametrize("user", [security_config["users"][0]["email"]], indirect=True)
 def test_context_processor_reset_password(
     client: FlaskClient, user: SecurityUser
 ) -> None:
