@@ -56,12 +56,6 @@ def test_tags_view(
                 assert tag.name not in rv.text
 
 
-@pytest.mark.parametrize(
-    "user",
-    ["user1@example.test", "user2@example.test", "user3@example.test"],
-    ids=["admin", "manage", "user"],
-    indirect=True,
-)
 @pytest.mark.parametrize("tags", [1], ids=["single"], indirect=True)
 def test_tag_view(logged_in_user_client: FlaskClient, tags: list[models.Tag]) -> None:
     rv = logged_in_user_client.get("/tag?id=%i" % tags[0].id)
@@ -69,12 +63,6 @@ def test_tag_view(logged_in_user_client: FlaskClient, tags: list[models.Tag]) ->
     assert html_test_strings["title"] % "View Tag" in rv.text
 
 
-@pytest.mark.parametrize(
-    "user",
-    ["user1@example.test", "user2@example.test", "user3@example.test"],
-    ids=["admin", "manage", "user"],
-    indirect=True,
-)
 def test_tag_view_others(
     logged_in_user_client: FlaskClient, user: models.User, db: SQLAlchemy
 ) -> None:
@@ -87,24 +75,12 @@ def test_tag_view_others(
     assert html_test_strings["title"] % "Error" in rv.text
 
 
-@pytest.mark.parametrize(
-    "user",
-    ["user1@example.test", "user2@example.test", "user3@example.test"],
-    ids=["admin", "manage", "user"],
-    indirect=True,
-)
 def test_tag_create_view(logged_in_user_client: FlaskClient, user: models.User) -> None:
     rv = logged_in_user_client.get("/tag")
     assert rv.status_code == 200
     assert html_test_strings["title"] % "New Tag" in rv.text
 
 
-@pytest.mark.parametrize(
-    "user",
-    ["user1@example.test", "user2@example.test", "user3@example.test"],
-    ids=["admin", "manage", "user"],
-    indirect=True,
-)
 def test_tag_create_post(logged_in_user_client: FlaskClient, user: models.User) -> None:
     expected_name = "Tag 1"
 
@@ -122,12 +98,6 @@ def test_tag_create_post(logged_in_user_client: FlaskClient, user: models.User) 
     assert tag.name == expected_name
 
 
-@pytest.mark.parametrize(
-    "user",
-    ["user1@example.test", "user2@example.test", "user3@example.test"],
-    ids=["admin", "manage", "user"],
-    indirect=True,
-)
 @pytest.mark.parametrize("button", ["Edit", "Update", "Delete", "Undelete"])
 def test_tag_view_post_others(
     logged_in_user_client: FlaskClient, user: models.User, button: str, db: SQLAlchemy
@@ -165,12 +135,6 @@ def test_tag_view_post_others(
             assert tag.updated_at is None
 
 
-@pytest.mark.parametrize(
-    "user",
-    ["user1@example.test", "user2@example.test", "user3@example.test"],
-    ids=["admin", "manage", "user"],
-    indirect=True,
-)
 @pytest.mark.parametrize("button", ["Edit", "Update", "Delete", "Undelete"])
 def test_tag_view_post(
     logged_in_user_client: FlaskClient, user: models.User, button: str, db: SQLAlchemy

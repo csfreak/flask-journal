@@ -71,7 +71,10 @@ def userdatastore(app: Flask, db: SQLAlchemy) -> datastore:
     yield security.datastore
 
 
-@pytest.fixture(params=[user["email"] for user in security_config["users"]])
+@pytest.fixture(
+    params=["user1@example.test", "user2@example.test", "user3@example.test"],
+    ids=["admin", "manage", "user"],
+)
 def user(userdatastore: datastore, request: pytest.FixtureRequest) -> User:
     return userdatastore.find_user(email=request.param)
 

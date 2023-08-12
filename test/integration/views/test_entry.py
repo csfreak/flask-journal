@@ -57,12 +57,6 @@ def test_entries_view(
                 assert entry.title not in rv.text
 
 
-@pytest.mark.parametrize(
-    "user",
-    ["user1@example.test", "user2@example.test", "user3@example.test"],
-    ids=["admin", "manage", "user"],
-    indirect=True,
-)
 @pytest.mark.parametrize("entries", [1], ids=["single"], indirect=True)
 def test_entry_view(
     logged_in_user_client: FlaskClient, entries: list[models.Entry]
@@ -72,12 +66,6 @@ def test_entry_view(
     assert html_test_strings["title"] % "View Entry" in rv.text
 
 
-@pytest.mark.parametrize(
-    "user",
-    ["user1@example.test", "user2@example.test", "user3@example.test"],
-    ids=["admin", "manage", "user"],
-    indirect=True,
-)
 def test_entry_view_others(
     logged_in_user_client: FlaskClient, user: models.User, db: SQLAlchemy
 ) -> None:
@@ -90,12 +78,6 @@ def test_entry_view_others(
     assert html_test_strings["title"] % "Error" in rv.text
 
 
-@pytest.mark.parametrize(
-    "user",
-    ["user1@example.test", "user2@example.test", "user3@example.test"],
-    ids=["admin", "manage", "user"],
-    indirect=True,
-)
 def test_entry_create_view(
     logged_in_user_client: FlaskClient, user: models.User
 ) -> None:
@@ -104,12 +86,6 @@ def test_entry_create_view(
     assert html_test_strings["title"] % "New Entry" in rv.text
 
 
-@pytest.mark.parametrize(
-    "user",
-    ["user1@example.test", "user2@example.test", "user3@example.test"],
-    ids=["admin", "manage", "user"],
-    indirect=True,
-)
 @pytest.mark.parametrize(
     "tags",
     ["", "existingtag", "newtag", "newtag existingtag"],
@@ -150,12 +126,6 @@ def test_entry_create_post(
         assert tag.name in expected_tags
 
 
-@pytest.mark.parametrize(
-    "user",
-    ["user1@example.test", "user2@example.test", "user3@example.test"],
-    ids=["admin", "manage", "user"],
-    indirect=True,
-)
 @pytest.mark.parametrize("button", ["Edit", "Update", "Delete", "Undelete"])
 def test_entry_view_post_others(
     logged_in_user_client: FlaskClient, user: models.User, button: str, db: SQLAlchemy
@@ -193,12 +163,6 @@ def test_entry_view_post_others(
             assert entry.updated_at is None
 
 
-@pytest.mark.parametrize(
-    "user",
-    ["user1@example.test", "user2@example.test", "user3@example.test"],
-    ids=["admin", "manage", "user"],
-    indirect=True,
-)
 @pytest.mark.parametrize("button", ["Edit", "Update", "Delete", "Undelete"])
 def test_entry_view_post(
     logged_in_user_client: FlaskClient, user: models.User, button: str, db: SQLAlchemy
