@@ -64,9 +64,7 @@ def test_actions(
         assert called == (expected_args, expected_kwargs)
 
 
-@pytest.mark.parametrize(
-    "user", ["user3@example.test"], indirect=True
-)
+@pytest.mark.parametrize("user", ["user3@example.test"], indirect=True)
 @pytest.mark.parametrize("action", ["view", "new", "edit"])
 @pytest.mark.usefixtures("logged_in_user_context")
 def test_actions_render(action: str) -> None:
@@ -78,9 +76,7 @@ def test_actions_render(action: str) -> None:
     assert 'id="FormSecondaryColumn' not in r
 
 
-@pytest.mark.parametrize(
-    "user", ["user3@example.test"], indirect=True
-)
+@pytest.mark.parametrize("user", ["user3@example.test"], indirect=True)
 @pytest.mark.parametrize("action", ["view", "new", "edit"])
 @pytest.mark.parametrize("button", view_form_action_buttons["all"])
 @pytest.mark.usefixtures("logged_in_user_context")
@@ -94,9 +90,7 @@ def test_actions_render_button(action: str, button: str) -> None:
         assert html_test_strings["button"][button] not in r
 
 
-@pytest.mark.parametrize(
-    "user", ["user3@example.test"], indirect=True
-)
+@pytest.mark.parametrize("user", ["user3@example.test"], indirect=True)
 @pytest.mark.parametrize("action", ["view", "new", "edit"])
 @pytest.mark.usefixtures("logged_in_user_context")
 def test_actions_render_columns(action: str) -> None:
@@ -110,9 +104,7 @@ def test_actions_render_columns(action: str) -> None:
     assert 'id="FormSecondaryColumn' in r
 
 
-@pytest.mark.parametrize(
-    "user", ["user3@example.test"], indirect=True
-)
+@pytest.mark.parametrize("user", ["user3@example.test"], indirect=True)
 @pytest.mark.parametrize("button", view_form_action_buttons["all"])
 @pytest.mark.usefixtures("logged_in_user_context")
 def test_actions_render_deleted_button(button: str) -> None:

@@ -82,9 +82,7 @@ def test_get(model_class: Model, obj_id: None, form_class: Form) -> None:
 
 
 @pytest.mark.parametrize("obj_id", [1], indirect=True)
-@pytest.mark.parametrize(
-    "user", ["user3@example.test"], indirect=True
-)
+@pytest.mark.parametrize("user", ["user3@example.test"], indirect=True)
 @pytest.mark.usefixtures("logged_in_user_context")
 def test_get_fail(model_class: Model, obj_id: None, form_class: Form) -> None:
     expected_rf = {"form": form_class(), "model": model_class, "action": "new"}
