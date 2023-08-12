@@ -73,7 +73,7 @@ def userdatastore(app: Flask, db: SQLAlchemy) -> datastore:
 
 @pytest.fixture(
     params=["user1@example.test", "user2@example.test", "user3@example.test"],
-    ids=["admin", "manage", "user"],
+    ids=["admin-user", "manage-user", "base-user"],
 )
 def user(userdatastore: datastore, request: pytest.FixtureRequest) -> User:
     return userdatastore.find_user(email=request.param)
