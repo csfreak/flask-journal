@@ -108,6 +108,7 @@ def form_view(
     elif obj is None:
         abort(404)
     if message != model.__name__ or category != "message":
+        logger.debug("flash message %s with category %s", message, category)
         flash(message, category=category)
     return render_form(**context)
 

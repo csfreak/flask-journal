@@ -66,6 +66,7 @@ filterwarnings = [
     "ignore: 'crypt' is deprecated and slated for removal in Python 3.13:DeprecationWarning:passlib",
     "ignore: pkg_resources is deprecated as an API:DeprecationWarning"
 ]
+markers = []
 
 [tool.coverage.run]
 branch = true

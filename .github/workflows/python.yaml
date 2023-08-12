@@ -112,5 +112,5 @@ jobs:
           containerfiles: |
             ./Dockerfile
           build-args: |
-            APP_VERSION=${{ steps.get_version.outputs.version }}-${{ github.sha }}
+            APP_VERSION=${{ steps.release_version.outputs.version }}-${{ github.sha }}
           oci: true

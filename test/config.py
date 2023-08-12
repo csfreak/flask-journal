@@ -84,6 +84,10 @@ html_test_strings = {
         "register": '<a class="dropdown-item" href="/auth/register">Register</a>',
         "logout": '<a class="dropdown-item" href="/auth/logout">Logout</a>',
         "settings": '<a class="dropdown-item" href="/settings">Settings</a>',
+        "roles": '<a class="dropdown-item" href="/roles">Roles</a>',
+        "users": '<a class="dropdown-item" href="/users">Users</a>',
+        "tags": '<a class="nav-item nav-link" href="/tags">Tags</a>',
+        "entries": '<a class="nav-item nav-link" href="/entries">Entries</a>',
     },
     "security": {
         "error": {
@@ -127,10 +131,8 @@ html_test_strings = {
         ),
         "base": '<table class="table table-striped table-hover">',
         "title": '<th scope="col" class="col-%d">%s</th>',
-        "row": (
-            '<tr class="" onclick=\'window.location="/tests?id=%d"\'>\n        <th'
-            ' scope="row">%d</th><td>%s</td>\n    </tr>'
-        ),
+        "row_link": '<tr class="" onclick=\'window.location="/tests?id=%d"\'>',
+        "row_data": '<th scope="row">%d</th><td>%s</td>',
         "pager": {
             "form": (
                 '<div class="col d-flex flex-row-reverse">\n        \n<form'

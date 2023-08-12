@@ -1,7 +1,9 @@
-import typing as t
 from datetime import datetime
 
+import pytest
 from flask import Flask, url_for
+from flask.testing import FlaskClient
+from flask_security import datastore
 from flask_security.forms import ConfirmRegisterForm
 from flask_security.recoverable import generate_reset_password_token
 from flask_security.registerable import register_user
@@ -13,319 +15,264 @@ from flask_journal.models import UserSettings
 from flask_journal.security import security
 from flask_journal.security.signals import user_init
 
-from ..base import AppTestBase
 from ..config import html_test_strings, security_config
 
-# from fakeredis import FakeStrictRedis
-# from flask_redis import Redis as FlaskRedis
-# from rossItApi.utils.redis import redis
+
+def test_app_security_instance(app: Flask) -> None:
+    assert security == app.extensions["security"]
 
 
-class SecurityUserTest(AppTestBase):
-    def tearDown(self: t.Self, app: Flask) -> None:
-        app.extensions["mailman"].outbox = []
-        app.extensions["sqlalchemy"].session.commit()
-        super().tearDown(app)
+def test_datastore_create_user(emptydatastore: datastore, user_config: dict) -> None:
+    enorm = security._mail_util.validate(user_config["email"])
+    pbad, pnorm = security._password_util.validate(user_config["password"], True)
 
-    def test_app_security_instance(self: t.Self, app: Flask) -> None:
-        self.assertEqual(security, app.extensions["security"])
+    assert pbad is None
 
-    def test_datastore_create_user(self: t.Self, app: Flask) -> None:
-        for user in security_config["users"]:
-            with self.subTest(user["email"]):
-                enorm = security._mail_util.validate(user["email"])
-                pbad, pnorm = security._password_util.validate(user["password"], True)
+    u: SecurityUser = emptydatastore.create_user(
+        email=enorm, password=pnorm, active=user_config["active"]
+    )
+    assert isinstance(u, SecurityUser)
+    assert u.active == user_config["active"]
+    assert verify_and_update_password(user_config["password"], u)
 
-                self.assertIsNone(pbad)
 
-                u: SecurityUser = security.datastore.create_user(
-                    email=enorm, password=pnorm, active=user["active"]
-                )
-                self.assertTrue(isinstance(u, SecurityUser))
-                self.assertEqual(u.active, user["active"])
-                self.assertTrue(verify_and_update_password(user["password"], u))
-
-    def test_datastore_register_user(self: t.Self, app: Flask) -> None:
-        for user in security_config["users"]:
-            # Reset outbox for tests
-            app.extensions["mailman"].outbox = []
-
-            with self.subTest(user["email"]):
-                with app.test_request_context("/auth/register"):
-                    register_user(
-                        ConfirmRegisterForm(
-                            data=dict(email=user["email"], password=user["password"])
-                        )
-                    )
-                outbox = app.extensions["mailman"].outbox
-
-                self.assertEqual(len(outbox), 1)
-                self.assertIn(user["email"], outbox[0].to)
-                u = security.datastore.find_user(email=user["email"])
-                self.assertTrue(isinstance(u, SecurityUser))
-                self.assertTrue(u.active)
-                self.assertIn(security.datastore.find_role("user"), u.roles)
-
-    def test_datastore_create_role(self: t.Self, app: Flask) -> None:
-        for role in security_config["roles"]:
-            with self.subTest(role["name"]):
-                security.datastore.create_role(**role)
-                r = security.datastore.find_role(role["name"])
-                self.assertTrue(isinstance(r, SecurityRole))
-                self.assertEqual(r.name, role["name"])
-
-    def test_user_has_role(self: t.Self, app: Flask) -> None:
-        for user in security_config["users"]:
-            with self.subTest(user["email"]):
-                enorm = security._mail_util.validate(user["email"])
-                pbad, pnorm = security._password_util.validate(user["password"], True)
-
-                u: SecurityUser = security.datastore.create_user(
-                    email=enorm, password=pnorm, active=user["active"]
-                )
-
-                for role in user["roles"]:
-                    security.datastore.add_role_to_user(u, role)
-
-                self.assertListEqual(user["roles"], [r.name for r in u.roles])
-
-                for role in user["roles"]:
-                    self.assertTrue(u.has_role(role))
-
-    def test_user_missing_role(self: t.Self, app: Flask) -> None:
-        for user in security_config["users"]:
-            with self.subTest(user["email"]):
-                enorm = security._mail_util.validate(user["email"])
-                pbad, pnorm = security._password_util.validate(user["password"], True)
-
-                u: SecurityUser = security.datastore.create_user(
-                    email=enorm, password=pnorm, active=user["active"]
-                )
-
-                self.assertFalse(u.has_role("testing"))
-
-    def test_user_login(self: t.Self, app: Flask) -> None:
-        for user in security_config["users"]:
-            with self.subTest(user["email"]):
-                enorm = security._mail_util.validate(user["email"])
-                pbad, pnorm = security._password_util.validate(user["password"], True)
-
-                security.datastore.create_user(
-                    email=enorm,
-                    password=pnorm,
-                    active=user["active"],
-                    confirmed_at=datetime.now(),
-                )
-
-                with app.test_client() as c:
-                    c.get("/auth/login")
-                    rv = c.post(
-                        "/auth/login",
-                        data={"email": user["email"], "password": user["password"]},
-                    )
-                    if user["active"]:
-                        self.assertStatus(rv, 302)
-                        self.assertLocationHeader(rv, "/")
-                        c.post("/auth/logout")
-                    else:
-                        self.assertStatus(rv, 200)
-                        self.assertIn(html_test_strings["title"] % "Login", rv.text)
-                    c.delete_cookie("session")
-
-    def test_user_login_invalid_password(self: t.Self, app: Flask) -> None:
-        for user in security_config["users"]:
-            with self.subTest(user["email"]):
-                enorm = security._mail_util.validate(user["email"])
-                pbad, pnorm = security._password_util.validate(user["password"], True)
-
-                security.datastore.create_user(
-                    email=enorm,
-                    password=pnorm,
-                    active=user["active"],
-                    confirmed_at=datetime.now(),
-                )
-
-                with app.test_client() as c:
-                    rv = c.post(
-                        url_for("security.login"),
-                        data={
-                            "email": user["email"],
-                            "password": "invalidpassword",
-                        },
-                    )
-                    self.assertIn(
-                        html_test_strings["security"]["error"]["generic"], rv.text
-                    )
-                    self.assertIn(html_test_strings["title"] % "Login", rv.text)
-
-    def test_user_login_not_confirmed(self: t.Self, app: Flask) -> None:
-        for user in security_config["users"]:
-            with self.subTest(user["email"]):
-                enorm = security._mail_util.validate(user["email"])
-                pbad, pnorm = security._password_util.validate(user["password"], True)
-
-                security.datastore.create_user(
-                    email=enorm, password=pnorm, active=user["active"]
-                )
-
-                with app.test_client() as c:
-                    rv = c.post(
-                        url_for("security.login"),
-                        data={
-                            "email": user["email"],
-                            "password": user["password"],
-                        },
-                    )
-                    self.assertIn(
-                        html_test_strings["security"]["error"]["email_confirm"], rv.text
-                    )
-                    self.assertIn(html_test_strings["title"] % "Login", rv.text)
-
-    def test_user_login_non_existent(self: t.Self, app: Flask) -> None:
-        for user in security_config["users"]:
-            with self.subTest(user["email"]):
-                enorm = security._mail_util.validate(user["email"])
-                pbad, pnorm = security._password_util.validate(user["password"], True)
-
-                security.datastore.create_user(
-                    email=enorm,
-                    password=pnorm,
-                    active=user["active"],
-                    confirmed_at=datetime.now(),
-                )
-
-                with app.test_client() as c:
-                    rv = c.post(
-                        url_for("security.login"),
-                        data={
-                            "email": "baduser@example.test",
-                            "password": user["password"],
-                        },
-                    )
-                    self.assertIn(
-                        html_test_strings["security"]["error"]["generic"], rv.text
-                    )
-                    self.assertIn(html_test_strings["title"] % "Login", rv.text)
-
-    def test_user_login_invalid_email(self: t.Self, app: Flask) -> None:
-        for user in security_config["users"]:
-            with self.subTest(user["email"]):
-                enorm = security._mail_util.validate(user["email"])
-                pbad, pnorm = security._password_util.validate(user["password"], True)
-
-                security.datastore.create_user(
-                    email=enorm,
-                    password=pnorm,
-                    active=user["active"],
-                    confirmed_at=datetime.now(),
-                )
-
-                with app.test_client() as c:
-                    rv = c.post(
-                        url_for("security.login"),
-                        data={
-                            "email": "notanemailaddress&1",
-                            "password": user["password"],
-                        },
-                    )
-                    self.assertIn(
-                        html_test_strings["security"]["error"]["generic"], rv.text
-                    )
-                    self.assertIn(html_test_strings["title"] % "Login", rv.text)
-
-    def test_context_processors(self: t.Self, app: Flask) -> None:
-        for endpoint in ["login", "register", "forgot_password"]:
-            title: str = endpoint.replace("_", " ").title()
-            with self.subTest(endpoint=endpoint):
-                with app.test_client() as c:
-                    rv = c.get(url_for(f"security.{endpoint}"))
-                    self.assertIn(html_test_strings["title"] % title, rv.text)
-
-    def test_context_processor_reset_password(self: t.Self, app: Flask) -> None:
-        user = security_config["users"][0]
-        enorm = security._mail_util.validate(user["email"])
-        pbad, pnorm = security._password_util.validate(user["password"], True)
-
-        u: SecurityUser = security.datastore.create_user(
-            email=enorm,
-            password=pnorm,
-            active=user["active"],
-            confirmed_at=datetime.now(),
-        )
-
-        with app.test_client() as c:
-            rv = c.get(
-                url_for(
-                    "security.reset_password", token=generate_reset_password_token(u)
-                )
+@pytest.mark.parametrize(
+    "user_config",
+    [security_config["users"][2]],
+    ids=[security_config["users"][2]["email"]],
+)
+def test_datastore_register_user(
+    app: Flask, outbox: list, user_config: dict, emptydatastore: datastore
+) -> None:
+    with app.test_request_context("/auth/register"):
+        register_user(
+            ConfirmRegisterForm(
+                data=dict(email=user_config["email"], password=user_config["password"])
             )
-            self.assertIn(html_test_strings["title"] % "Reset Password", rv.text)
-
-    def test_user_init_handler(self: t.Self, app: Flask) -> None:
-        user = security_config["users"][0]
-        enorm = security._mail_util.validate(user["email"])
-        pbad, pnorm = security._password_util.validate(user["password"], True)
-
-        u: SecurityUser = security.datastore.create_user(
-            email=enorm,
-            password=pnorm,
-            active=user["active"],
-            confirmed_at=datetime.now(),
         )
 
-        user_init(app, u)
+    assert len(outbox) == 1
+    assert user_config["email"] in outbox[0].to
+    u = emptydatastore.find_user(email=user_config["email"])
+    assert isinstance(u, SecurityUser)
+    assert u.active
+    assert emptydatastore.find_role("user") in u.roles
 
-        self.assertIsNotNone(u.settings)
-        self.assertTrue(u.has_role("user"))
 
-    def test_user_init_handler_no_user(self: t.Self, app: Flask) -> None:
-        user = security_config["users"][0]
-        enorm = security._mail_util.validate(user["email"])
-        pbad, pnorm = security._password_util.validate(user["password"], True)
+def test_datastore_create_role(
+    emptydatastore: datastore,
+    role_config: dict,
+) -> None:
+    security.datastore.create_role(**role_config)
+    r = emptydatastore.find_role(role_config["name"])
+    assert isinstance(r, SecurityRole)
+    assert r.name == role_config["name"]
 
-        u: SecurityUser = security.datastore.create_user(
-            email=enorm,
-            password=pnorm,
-            active=user["active"],
-            confirmed_at=datetime.now(),
-        )
 
-        user_init(app, None)
+@pytest.mark.parametrize(
+    "user_config",
+    [security_config["users"][2]],
+    ids=[security_config["users"][2]["email"]],
+)
+def test_user_has_role(emptydatastore: datastore, user_config: dict) -> None:
+    enorm = security._mail_util.validate(user_config["email"])
+    pbad, pnorm = security._password_util.validate(user_config["password"], True)
 
-        self.assertIsNone(u.settings)
-        self.assertFalse(u.has_role("user"))
+    u: SecurityUser = emptydatastore.create_user(
+        email=enorm, password=pnorm, active=user_config["active"]
+    )
 
-    def test_user_init_handler_existing_settings(self: t.Self, app: Flask) -> None:
-        user = security_config["users"][0]
-        enorm = security._mail_util.validate(user["email"])
-        pbad, pnorm = security._password_util.validate(user["password"], True)
+    for role in user_config["roles"]:
+        emptydatastore.add_role_to_user(u, role)
 
-        u: SecurityUser = security.datastore.create_user(
-            email=enorm,
-            password=pnorm,
-            active=user["active"],
-            confirmed_at=datetime.now(),
-        )
-        us = UserSettings()
-        u.settings = us
-        user_init(app, u)
+    assert user_config["roles"] == [r.name for r in u.roles]
 
-        self.assertIs(u.settings, us)
-        self.assertTrue(u.has_role("user"))
+    for role in user_config["roles"]:
+        assert u.has_role(role)
 
-    def test_user_init_handler_existing_role(self: t.Self, app: Flask) -> None:
-        user = security_config["users"][0]
-        enorm = security._mail_util.validate(user["email"])
-        pbad, pnorm = security._password_util.validate(user["password"], True)
 
-        u: SecurityUser = security.datastore.create_user(
-            email=enorm,
-            password=pnorm,
-            active=user["active"],
-            confirmed_at=datetime.now(),
-        )
-        security.datastore.add_role_to_user(u, "user")
-        user_init(app, u)
+@pytest.mark.parametrize(
+    "user_config",
+    [security_config["users"][2]],
+    ids=[security_config["users"][2]["email"]],
+)
+def test_user_missing_role(emptydatastore: datastore, user_config: dict) -> None:
+    enorm = security._mail_util.validate(user_config["email"])
+    pbad, pnorm = security._password_util.validate(user_config["password"], True)
 
-        self.assertIsNotNone(u.settings)
-        self.assertTrue(u.has_role("user"))
+    u: SecurityUser = emptydatastore.create_user(
+        email=enorm, password=pnorm, active=user_config["active"]
+    )
+
+    assert not u.has_role("testing")
+
+
+def test_user_login(
+    userdatastore: datastore, client: FlaskClient, user_config: dict
+) -> None:
+    client.get("/auth/login")
+    rv = client.post(
+        "/auth/login",
+        data={"email": user_config["email"], "password": user_config["password"]},
+    )
+    if user_config["active"]:
+        assert rv.status_code == 302
+        assert rv.headers["location"] == "/"
+        client.post("/auth/logout")
+    else:
+        assert rv.status_code == 200
+        assert html_test_strings["title"] % "Login" in rv.text
+    client.delete_cookie("session")
+
+
+def test_user_login_invalid_password(
+    userdatastore: datastore, client: FlaskClient, user_config: dict
+) -> None:
+    rv = client.post(
+        url_for("security.login"),
+        data={
+            "email": user_config["email"],
+            "password": "invalidpassword",
+        },
+    )
+    assert html_test_strings["security"]["error"]["generic"] in rv.text
+    assert html_test_strings["title"] % "Login" in rv.text
+
+
+def test_user_login_not_confirmed(
+    emptydatastore: datastore, client: FlaskClient, user_config: dict
+) -> None:
+    enorm = security._mail_util.validate(user_config["email"])
+    pbad, pnorm = security._password_util.validate(user_config["password"], True)
+
+    security.datastore.create_user(
+        email=enorm, password=pnorm, active=user_config["active"]
+    )
+
+    rv = client.post(
+        url_for("security.login"),
+        data={
+            "email": user_config["email"],
+            "password": user_config["password"],
+        },
+    )
+    assert html_test_strings["security"]["error"]["generic"] in rv.text
+    assert html_test_strings["title"] % "Login" in rv.text
+
+
+def test_user_login_non_existent(
+    client: FlaskClient, emptydatastore: datastore
+) -> None:
+    rv = client.post(
+        url_for("security.login"),
+        data={
+            "email": "baduser@example.test",
+            "password": "password",
+        },
+    )
+    assert html_test_strings["security"]["error"]["generic"] in rv.text
+    assert html_test_strings["title"] % "Login" in rv.text
+
+
+def test_user_login_invalid_email(
+    client: FlaskClient, emptydatastore: datastore
+) -> None:
+    rv = client.post(
+        url_for("security.login"),
+        data={
+            "email": "notanemailaddress&1",
+            "password": "password",
+        },
+    )
+    assert html_test_strings["security"]["error"]["generic"] in rv.text
+    assert html_test_strings["title"] % "Login" in rv.text
+
+
+@pytest.mark.parametrize("endpoint", ["login", "register", "forgot_password"])
+def test_context_processors(client: FlaskClient, endpoint: str) -> None:
+    title: str = endpoint.replace("_", " ").title()
+    rv = client.get(url_for(f"security.{endpoint}"))
+    assert html_test_strings["title"] % title in rv.text
+
+
+@pytest.mark.parametrize("user", [security_config["users"][0]["email"]], indirect=True)
+def test_context_processor_reset_password(
+    client: FlaskClient, user: SecurityUser
+) -> None:
+    rv = client.get(
+        url_for("security.reset_password", token=generate_reset_password_token(user))
+    )
+    assert html_test_strings["title"] % "Reset Password" in rv.text
+
+
+def test_user_init_handler(app: Flask, emptydatastore: datastore) -> None:
+    enorm = security._mail_util.validate("test@example.test")
+    pbad, pnorm = security._password_util.validate("password", True)
+
+    u: SecurityUser = emptydatastore.create_user(
+        email=enorm,
+        password=pnorm,
+        active=True,
+        confirmed_at=datetime.now(),
+    )
+
+    user_init(app, u)
+
+    assert u.settings is not None
+    assert u.has_role("user")
+
+
+def test_user_init_handler_no_user(app: Flask, emptydatastore: datastore) -> None:
+    enorm = security._mail_util.validate("test@example.test")
+    pbad, pnorm = security._password_util.validate("password", True)
+
+    u: SecurityUser = emptydatastore.create_user(
+        email=enorm,
+        password=pnorm,
+        active=True,
+        confirmed_at=datetime.now(),
+    )
+
+    user_init(app, None)
+
+    assert u.settings is None
+    assert not u.has_role("user")
+
+
+def test_user_init_handler_existing_settings(
+    app: Flask, emptydatastore: datastore
+) -> None:
+    enorm = security._mail_util.validate("test@example.test")
+    pbad, pnorm = security._password_util.validate("password", True)
+
+    u: SecurityUser = emptydatastore.create_user(
+        email=enorm,
+        password=pnorm,
+        active=True,
+        confirmed_at=datetime.now(),
+    )
+
+    us = UserSettings()
+    u.settings = us
+    user_init(app, u)
+
+    assert u.settings is us
+    assert u.has_role("user")
+
+
+def test_user_init_handler_existing_role(app: Flask, emptydatastore: datastore) -> None:
+    enorm = security._mail_util.validate("test@example.test")
+    pbad, pnorm = security._password_util.validate("password", True)
+
+    u: SecurityUser = emptydatastore.create_user(
+        email=enorm,
+        password=pnorm,
+        active=True,
+        confirmed_at=datetime.now(),
+    )
+
+    emptydatastore.add_role_to_user(u, "user")
+    user_init(app, u)
+
+    assert u.settings is not None
+    assert u.has_role("user")
