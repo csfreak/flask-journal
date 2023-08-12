@@ -84,6 +84,10 @@ html_test_strings = {
         "register": '<a class="dropdown-item" href="/auth/register">Register</a>',
         "logout": '<a class="dropdown-item" href="/auth/logout">Logout</a>',
         "settings": '<a class="dropdown-item" href="/settings">Settings</a>',
+        "roles": '<a class="dropdown-item" href="/roles">Roles</a>',
+        "users": '<a class="dropdown-item" href="/users">Users</a>',
+        "tags": '<a class="nav-item nav-link" href="/tags">Tags</a>',
+        "entries": '<a class="nav-item nav-link" href="/entries">Entries</a>',
     },
     "security": {
         "error": {

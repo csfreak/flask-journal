@@ -1,40 +1,11 @@
 import typing as t
 
-# import pytest
 from flask import Flask
 from flask.testing import FlaskClient
-
-# from flask_journal import models
-from flask_journal.views.themes import Theme
 
 from ...base import AppClientTestBase
 from ...config import html_test_strings
 from ...utils import authenticate
-
-# pytest.skip("skipping legacy tests", allow_module_level=True)
-
-
-class HomeViewClientTest(AppClientTestBase):
-    def test_index_view(self: t.Self, app: Flask, client: FlaskClient) -> None:
-        rv = client.get("/")
-        self.assertStatus(rv, 301)
-        self.assertLocationHeader(rv, "/home")
-
-    def test_home_view_anon(self: t.Self, app: Flask, client: FlaskClient) -> None:
-        rv = client.get("/home")
-        self.assertStatus(rv, 200)
-        self.assertIn("<title>Journal</title>", rv.text)
-        self.assertIn(html_test_strings["nav"]["login"], rv.text)
-        self.assertIn(html_test_strings["nav"]["register"], rv.text)
-
-    def test_home_view_authed(self: t.Self, app: Flask, client: FlaskClient) -> None:
-        email = "user1@example.test"
-        authenticate(client, email)
-        rv = client.get("/home")
-        self.assertStatus(rv, 200)
-        self.assertIn("<title>Journal</title>", rv.text)
-        self.assertIn(html_test_strings["nav"]["logout"], rv.text)
-        self.assertIn(html_test_strings["nav"]["settings"], rv.text)
 
 
 class UserViewClientTest(AppClientTestBase):
@@ -156,41 +127,3 @@ class RoleViewClientTest(AppClientTestBase):
         rv = client.get("/role")
         self.assertStatus(rv, 200)
         self.assertIn(html_test_strings["title"] % "New Role", rv.text)
-
-
-class UserSettingsViewClientTest(AppClientTestBase):
-    def test_settings_view(self: t.Self, app: Flask, client: FlaskClient) -> None:
-        email = "user1@example.test"
-        authenticate(client, email)
-        rv = client.get("/settings")
-        self.assertStatus(rv, 200)
-        self.assertIn(html_test_strings["title"] % "Settings", rv.text)
-        self.assertIn(html_test_strings["settings"]["select"], rv.text)
-        self.assertIn(
-            html_test_strings["settings"]["selected"] % ("default", "default"), rv.text
-        )
-        for theme in list(Theme):
-            if theme != "default":
-                self.assertIn(
-                    html_test_strings["settings"]["option"] % (theme, theme), rv.text
-                )
-
-    def test_settings_post(self: t.Self, app: Flask, client: FlaskClient) -> None:
-        email = "user1@example.test"
-        authenticate(client, email)
-        for theme in list(Theme):
-            with self.subTest(theme=str(theme)):
-                rv = client.post("/settings", data={"Theme": theme, "Update": "Update"})
-                self.assertIn(html_test_strings["title"] % "Settings", rv.text)
-                self.assertIn(
-                    html_test_strings["settings"]["selected"] % (theme, theme), rv.text
-                )
-                if str(theme) == "default":
-                    self.assertIn(
-                        html_test_strings["settings"]["css"]["default"], rv.text
-                    )
-                else:
-                    self.assertIn(
-                        html_test_strings["settings"]["css"]["bootswatch"] % theme,
-                        rv.text,
-                    )
