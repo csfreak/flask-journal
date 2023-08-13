@@ -101,7 +101,7 @@ jobs:
         id: build
         run: |
           python -m build
-          VERSION=$(ls dist/flask-journal-*.tar.gz | sed 's/dist\/flask-journal-\(.*\).tar.gz/\1/')
+          echo "version=$(ls dist/flask-journal-*.tar.gz | sed 's/dist\/flask-journal-\(.*\).tar.gz/\1/')" >> "$GITHUB_OUTPUT"
       - name: Buildah
         uses: redhat-actions/buildah-build@v2
         with:
@@ -110,3 +110,7 @@ jobs:
           containerfiles: |
             ./Dockerfile
           oci: true
+      - uses: actions/upload-artifact@v3
+        with:
+            name: build ${{steps.build.outputs.version}}
+            path: dist/

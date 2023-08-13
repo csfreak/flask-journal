@@ -39,6 +39,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install build
+          git fetch --depth=1
       - name: Python Build
         id: build
         run: |
@@ -56,6 +57,8 @@ jobs:
           containerfiles: |
             ./Dockerfile
           oci: true
+          extra-args: |
+            --squash
       # Push the image to GHCR (Image Registry)
       - name: Push To GHCR
         uses: redhat-actions/push-to-registry@v2
