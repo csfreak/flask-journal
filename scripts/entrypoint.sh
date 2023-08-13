@@ -2,13 +2,16 @@
 cd /app
 source .venv/bin/activate
 
-if [ $# -eq 0 ];  then
+if [ $# -ne 0 ];  then
     exec $@
 fi
 
 GUNICORN_CMD_ARGS="--chdir /app  --threads ${WORKER_THREADS}  --config gunicorn.config.py ${EXTRA_ARGS}"
 
 PROMETHEUS_MULTIPROC_DIR=${PROMETHEUS_MULTIPROC_DIR:-/prom}
+if [ -e ${PROMETHEUS_MULTIPROC_DIR} ]; then
+    rm -rf ${PROMETHEUS_MULTIPROC_DIR}
+fi
 mkdir -p ${PROMETHEUS_MULTIPROC_DIR}
 export PROMETHEUS_MULTIPROC_DIR
 
@@ -19,6 +22,5 @@ if [ ${DEBUG} ]; then
     export FLASK_JOURNAL_DEBUG=1
 fi
 
-flask db upgrade ${ALEMBIC_REVISION}
 export GUNICORN_CMD_ARGS
 exec gunicorn 'flask_journal.app:create_app()'

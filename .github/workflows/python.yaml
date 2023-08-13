@@ -91,19 +91,15 @@ jobs:
           cache-dependency-path: |
             requirements.txt
             test/requirements.txt
-      - name: Semantic Release
-        id: release_version
-        uses: go-semantic-release/action@v1.21.0
-        with:
-          github-token: ${{ github.token }}
-          allow-initial-development-versions: true
-          prerelease: true
-          dry: true
-      - name: SetVersion
-        id: version
+      - name: Install dependencies
         run: |
-          version=${{ steps.release_version.outputs.version }}
-          echo $version > VERSION
+          python -m pip install --upgrade pip
+          pip install build
+      - name: Python Build
+        id: build
+        run: |
+          python -m build
+          VERSION=$(ls dist/flask-journal-*.tar.gz | sed 's/dist\/flask-journal-\(.*\).tar.gz/\1/')
       - name: Buildah
         uses: redhat-actions/buildah-build@v2
         with:
@@ -111,6 +107,4 @@ jobs:
           tags: ${{ github.sha }}
           containerfiles: |
             ./Dockerfile
-          build-args: |
-            APP_VERSION=${{ steps.release_version.outputs.version }}-${{ github.sha }}
           oci: true

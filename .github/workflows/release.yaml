@@ -33,11 +33,14 @@ jobs:
           github-token: ${{ github.token }}
           allow-initial-development-versions: true
           force-bump-patch-version: true
-      - name: SetVersion
-        id: version
+      - name: Install dependencies
         run: |
-          version=${{ steps.release_version.outputs.version }}
-          echo $version > VERSION
+          python -m pip install --upgrade pip
+          pip install build
+      - name: Python Build
+        id: build
+        run: |
+          python -m build
       - name: Build Image
         id: build_image
         uses: redhat-actions/buildah-build@v2
@@ -50,8 +53,6 @@ jobs:
             v${{ steps.release_version.outputs.version_major }}.${{ steps.release_version.outputs.version_minor }}
           containerfiles: |
             ./Dockerfile
-          build-args: |
-            APP_VERSION=${{ steps.release_version.outputs.version }}
           oci: true
       # Push the image to GHCR (Image Registry)
       - name: Push To GHCR
