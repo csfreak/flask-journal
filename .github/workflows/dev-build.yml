@@ -24,27 +24,25 @@ env:
 jobs:
   release:
     runs-on: ubuntu-latest
-    outputs:
-      tags: >
-        ${{ github.sha }}
-        v${{ steps.release_version.outputs.version }}-${{ github.sha }}
-      success: ${{ steps.release_version.outputs.version != '' }}
-      version: v${{ steps.release_version.outputs.version }}
     steps:
       - uses: actions/checkout@v3
-      - name: Semantic Release
-        id: release_version
-        uses: go-semantic-release/action@v1.21.0
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v3
         with:
-          github-token: ${{ github.token }}
-          allow-initial-development-versions: true
-          dry: true
-          prerelease: true
-      - name: SetVersion
-        id: version
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: |
+            requirements.txt
+            test/requirements.txt
+      - name: Install dependencies
         run: |
-          version=${{ steps.release_version.outputs.version }}.dev${{ github.sha }}
-          echo $version > VERSION
+          python -m pip install --upgrade pip
+          pip install build
+      - name: Python Build
+        id: build
+        run: |
+          python -m build
+          VERSION=$(ls dist/flask-journal-*.tar.gz | sed 's/dist\/flask-journal-\(.*\).tar.gz/\1/')
       - name: Build Image
         id: build_image
         uses: redhat-actions/buildah-build@v2
@@ -52,11 +50,9 @@ jobs:
           image: flask_journal
           tags: >
             ${{ github.sha }}
-            v${{ steps.release_version.outputs.version }}-${{ github.sha }}
+            v${{ steps.build.outputs.version }}-${{ github.sha }}
           containerfiles: |
             ./Dockerfile
-          build-args: |
-            APP_VERSION=${{ steps.release_version.outputs.version }}
           oci: true
       # Push the image to GHCR (Image Registry)
       - name: Push To GHCR
