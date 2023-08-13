@@ -44,7 +44,7 @@ jobs:
         id: build
         run: |
           python -m build
-          VERSION=$(ls dist/flask-journal-*.tar.gz | sed 's/dist\/flask-journal-\(.*\).tar.gz/\1/')
+          echo "version=$(ls dist/flask-journal-*.tar.gz | sed 's/dist\/flask-journal-\(.*\).tar.gz/\1/')" >> "$GITHUB_OUTPUT"
       - name: Build Image
         id: build_image
         uses: redhat-actions/buildah-build@v2
@@ -56,6 +56,8 @@ jobs:
           containerfiles: |
             ./Dockerfile
           oci: true
+          extra-args: |
+            --squash
       # Push the image to GHCR (Image Registry)
       - name: Push To GHCR
         uses: redhat-actions/push-to-registry@v2
@@ -68,3 +70,7 @@ jobs:
           password: ${{ env.REGISTRY_PASSWORD }}
           extra-args: |
             --disable-content-trust
+      - uses: actions/upload-artifact@v3
+        with:
+          name: build ${{steps.build.outputs.version}}
+          path: dist/
