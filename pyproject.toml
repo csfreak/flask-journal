@@ -27,6 +27,7 @@ deploy = ['gunicorn>=20.0.0']
 "Bug Tracker" = "https://github.com/csfreak/flask-journal"
 
 [tool.setuptools.packages.find]
+where = ['src']
 include = ["flask_journal*"]
 
 [tool.setuptools.dynamic]
@@ -60,11 +61,10 @@ extend_skip = ["migrations"]
 testpaths = "test"
 python_files = "test_*.py"
 log_level = 'DEBUG'
-addopts = "--capture=sys --cov=flask_journal --junitxml=.pytest.xml -n auto"
+addopts = "--capture=sys --cov --junitxml=.pytest.xml -n auto"
 filterwarnings = [
     "ignore:'get_token_status' is deprecated - use check_and_get_token_status instead:DeprecationWarning:flask_security",
     "ignore: 'flask.Markup' is deprecated and will be removed in Flask 2.4. Import 'markupsafe.Markup' instead.:DeprecationWarning:flask_security",
-    "ignore: 'flask.Markup' is deprecated and will be removed in Flask 2.4. Import 'markupsafe.Markup' instead.:DeprecationWarning:flask_bootstrap",
     "ignore: 'flask.Markup' is deprecated and will be removed in Flask 2.4. Import 'markupsafe.Markup' instead.:DeprecationWarning:flask_wtf",
     "ignore: 'crypt' is deprecated and slated for removal in Python 3.13:DeprecationWarning:passlib",
     "ignore: pkg_resources is deprecated as an API:DeprecationWarning"
@@ -73,11 +73,9 @@ markers = []
 
 [tool.coverage.run]
 branch = true
-source = ["flask_journal"]
+source = ["src/flask_journal"]
 omit = [ 
-    "flask_journal/config.py",
-    "flask_journal/logging.py",
-    "flask_journal/metrics.py"
+    "src/flask_journal/logging.py",
 ]
 
 [tool.coverage.report]
@@ -88,7 +86,8 @@ exclude_lines = [
     "pragma: no cover",
     "pass",
     "def __str__",
-    "def __repr__"
+    "def __repr__",
+    "if not app.debug"
 ]
 
 [tool.coverage.lcov]
