@@ -1,2 +1,3 @@
 exclude .gitignore
 prune .github
+graft src/flask_journal/templates/
