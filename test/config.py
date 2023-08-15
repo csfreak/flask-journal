@@ -7,6 +7,7 @@ test_config = {
     "SERVER_NAME": "localhost",
     "APPLICATION_ROOT": "/",
     "PREFERRED_URL_SCHEME": "http",
+    "IS_GUNICORN": False,
 }
 
 security_config = {
