@@ -82,12 +82,12 @@ omit = [
 show_missing = true
 skip_empty = true
 fail_under = 95
-exclude_lines = [
-    "pragma: no cover",
+exclude_also = [
     "pass",
     "def __str__",
     "def __repr__",
-    "if not app.debug"
+    "debug",
+    "logger.debug"
 ]
 
 [tool.coverage.lcov]
