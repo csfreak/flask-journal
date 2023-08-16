@@ -29,8 +29,8 @@ def create_app(c: Config | None = None) -> Flask:
     if app.config.get("IS_GUNICORN"):  # pragma: no cover
         app.wsgi_app = ProxyFix(app.wsgi_app, x_for=2, x_port=1, x_proto=1, x_host=1)
 
-        from .metrics import metrics
+    from .metrics import init_metrics
 
-        metrics.init_app(app)
+    init_metrics(app)
 
     return app
