@@ -18,7 +18,7 @@ else:
 
 try:
     metrics.info("app_info", "Application info", version=APP_VERSION)
-except ValueError:
+except ValueError:  # pragma: no cover
     logger.debug("Skipping app_info metric duplicate")
 
 
