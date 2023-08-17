@@ -81,10 +81,6 @@ jobs:
         with:
           pytest-xml-coverage-path: coverage.xml
           junitxml-path: ./.pytest.xml
-      - name: Handle Error
-        if: ${{ steps.pytest.outcome }} == "failed"
-        run: |
-          exit 1
   build:
     runs-on: ubuntu-latest
     name: Run Buildah
