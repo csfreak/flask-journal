@@ -9,7 +9,7 @@ def test_app_info(client: FlaskClient) -> None:
     assert 'app_info{version="%s"}' % APP_VERSION in rv.text
 
 
-@pytest.mark.xfail
+@pytest.mark.xfail(run=True, reason="Test doesnt succeed in certain environments")
 def test_http_request(client: FlaskClient) -> None:
     r1 = client.get("/")
     rv = client.get("/metrics")
