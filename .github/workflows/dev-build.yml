@@ -52,7 +52,7 @@ jobs:
           image: flask_journal
           tags: >
             ${{ github.sha }}
-            v${{ steps.build.outputs.version }}-${{ github.sha }}
+            v${{ steps.build.outputs.version }}
           containerfiles: |
             ./Dockerfile
           oci: true
