@@ -73,7 +73,7 @@ jobs:
       - name: Tests
         id: pytest
         run: |
-          py.test --cov-report=xml --no-cov-on-fail=False  --showlocals -vv
+          py.test --cov-report=xml --showlocals -vv
         continue-on-error: true
 
       - name: Pytest coverage comment
