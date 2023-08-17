@@ -10,7 +10,7 @@ from .db import db
 
 class Entry(db.Model):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
-    _title: Mapped[str] = mapped_column(String(), nullable=False)
+    _title: Mapped[str] = mapped_column(String(255), nullable=False)
     _data: Mapped[str] = mapped_column(Text, nullable=False, default="")
     encrypted: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
