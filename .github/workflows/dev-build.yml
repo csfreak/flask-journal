@@ -4,7 +4,7 @@ on:
     branches:
       - dev
     paths:
-      - "flask_journal"
+      - "src"
       - "migrations"
       - "scripts"
       - "Dockerfile"

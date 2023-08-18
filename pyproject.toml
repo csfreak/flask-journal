@@ -61,7 +61,7 @@ extend_skip = ["migrations"]
 testpaths = "test"
 python_files = "test_*.py"
 log_level = 'DEBUG'
-addopts = "--capture=sys --cov=flask_journal --junitxml=.pytest.xml -n auto"
+addopts = "--capture=sys --cov --junitxml=.pytest.xml -n auto"
 filterwarnings = [
     "ignore:'get_token_status' is deprecated - use check_and_get_token_status instead:DeprecationWarning:flask_security",
     "ignore: 'flask.Markup' is deprecated and will be removed in Flask 2.4. Import 'markupsafe.Markup' instead.:DeprecationWarning:flask_security",
@@ -73,14 +73,14 @@ markers = []
 
 [tool.coverage.run]
 branch = true
-source_pkgs = ["flask_journal"]
+source = ["src"]
 omit = [ 
     "**/flask_journal/logging.py",
 ]
 [tool.coverage.paths]
 src = [
     "src/flask_journal/",
-    "flask_journal/"
+    "**/site-packages/flask_journal/"
     ]
 
 [tool.coverage.report]
