@@ -97,3 +97,26 @@ def test_user_view_post_invalid_role(
     else:
         assert rv.status_code == 403
         assert html_test_strings["title"] % "Error" in rv.text
+
+
+def test_user_view_post_update_email(
+    logged_in_user_client: FlaskClient, user: User
+) -> None:
+    rv = logged_in_user_client.post(
+        "/user",
+        data={
+            "id": 5,
+            "Email": "user5new@example.test",
+            "Roles": "user",
+            "Update": "Update",
+        },
+    )
+    if user.has_role("admin"):
+        assert rv.status_code == 200
+        assert html_test_strings["title"] % "View User" in rv.text
+        assert html_test_strings["form"]["id"] % 5 in rv.text
+        assert html_test_strings["form"]["email"] % "user5new@example.test" in rv.text
+        assert html_test_strings["form"]["confirmed_at"] % "" not in rv.text
+    else:
+        assert rv.status_code == 403
+        assert html_test_strings["title"] % "Error" in rv.text
