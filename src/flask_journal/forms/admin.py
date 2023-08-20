@@ -1,7 +1,10 @@
+import typing as t
+
 from flask_wtf import FlaskForm
 from wtforms import BooleanField, EmailField, SelectField, StringField, SubmitField
 from wtforms.validators import Length
 
+from ..models import User
 from ..views.themes import Theme
 from .base import CustomForm, UnmanagedForm
 from .fields import (
@@ -39,6 +42,12 @@ class UserForm(CustomForm):
     settings = UserSettingsField(
         UserSettingsSubForm, name="Settings", label="User Settings"
     )
+
+    def populate_obj(self: t.Self, obj: User) -> None:
+        for name, field in self._fields.items():
+            if name == "email" and field.data != obj.email:
+                obj.confirmed_at = None
+        return super().populate_obj(obj)
 
 
 class RoleForm(CustomForm):

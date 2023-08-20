@@ -40,6 +40,14 @@ security_config = {
             ],
             "active": False,
         },
+        {
+            "email": "user5@example.test",
+            "password": "user4_password",
+            "roles": [
+                "user",
+            ],
+            "active": True,
+        },
     ],
     "roles": [
         {"name": "admin", "description": "admin role"},
@@ -122,6 +130,10 @@ html_test_strings = {
         "roles": (
             '<input class="form-control form-control-plaintext" id="Roles" name="Roles"'
             ' readonly type="text" value="%s">'
+        ),
+        "email": (
+            '<input class="form-control form-control-plaintext" id="Email" name="Email"'
+            ' readonly type="email" value="%s">'
         ),
         "error": '<div class="invalid-feedback d-block">%s</div>',
     },

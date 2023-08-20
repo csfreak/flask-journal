@@ -25,7 +25,7 @@
       {%- endblock navbar -%}
       {%- block navtitle %}
       {% if title is defined -%}
-      <div class="container-fluid justify-content-center justify-content-middle"><p class="h1 text-center">{{title}}</p></div>
+      <div class="container-fluid justify-content-center justify-content-middle"><p class="h1 text-center">{{ title | title }}</p></div>
       {% endif -%}
       {%- endblock navtitle -%}
 
