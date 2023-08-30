@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 
 from flask_security.core import UserMixin
-from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..views.themes import Theme
@@ -53,5 +53,7 @@ class UserSettings(db.Model):
     # encryption_key: Mapped[str] = mapped_column(String, nullable=True)
 
     theme: Mapped[Theme] = mapped_column(Enum(Theme), nullable=False, default="default")
+    home_tags: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    home_preview: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     user = relationship("User", back_populates="settings", uselist=False)

@@ -120,8 +120,8 @@ def init_config(app: Flask, c: Config | None) -> None:
 def set_debug_opts(app: Flask) -> None:
     if not app.debug:
         return
-    app.config["EXPLAIN_TEMPLATE_LOADING"] = False
-    app.config["SQLALCHEMY_ECHO"] = True
+    app.config["EXPLAIN_TEMPLATE_LOADING"] = True
+    app.config["SQLALCHEMY_ECHO"] = False
     app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 

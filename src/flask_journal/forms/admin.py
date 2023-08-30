@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import EmailField, SelectField, StringField, SubmitField
+from wtforms import BooleanField, EmailField, SelectField, StringField, SubmitField
 from wtforms.validators import Length
 
 from ..views.themes import Theme
@@ -23,6 +23,8 @@ class UserTrackingForm(UnmanagedForm):
 
 class UserSettingsSubForm(FlaskForm):
     theme = SelectField(name="Theme", choices=list(Theme), default="default")
+    home_tags = BooleanField("Show Tag Cloud on Home Screen")
+    home_preview = BooleanField("Show Entry Previews on Home Screen")
 
 
 class UserSettingsForm(UserSettingsSubForm):
