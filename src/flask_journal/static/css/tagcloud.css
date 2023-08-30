@@ -1,0 +1,30 @@
+.btn-tag-1 {
+    --bs-btn-font-size: 0.5rem
+}
+.btn-tag-2 {
+    --bs-btn-font-size: 0.6rem
+}
+.btn-tag-3 {
+    --bs-btn-font-size: 0.7rem
+}
+.btn-tag-4 {
+    --bs-btn-font-size: 0.8rem
+}
+.btn-tag-5 {
+    --bs-btn-font-size: 0.9rem
+}
+.btn-tag-6 {
+    --bs-btn-font-size: 1rem
+}
+.btn-tag-7 {
+    --bs-btn-font-size: 1.25rem
+}
+.btn-tag-8 {
+    --bs-btn-font-size: 1.5rem
+}
+.btn-tag-9 {
+    --bs-btn-font-size: 1.75rem
+}
+.btn-tag-10 {
+    --bs-btn-font-size: 2rem
+}
