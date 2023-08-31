@@ -47,10 +47,12 @@ def form_view(
     form_class: type[CustomForm],
     table_view: str,
     defaults: dict[str, t.Any] = None,
+    id: int | None = None,
     **context: t.Any,
 ) -> werkzeugResponse | str:
     logger.debug("form view for model %s", model.__name__)
-    id = utils.process_request_id()
+    if id is None:
+        id = utils.process_request_id()
 
     query: Query = utils.build_query(model=model, filters=dict(id=id))
 

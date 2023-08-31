@@ -20,7 +20,7 @@
         {%- set class = ' ' + class -%}
     {%- endif -%}
     {%- set extra_classes = render_kw_class + class -%}
-    {%- set extra_label_classes = kwargs.pop('extra_label_classes', '') -%}
+    {%- set extra_label_classes = kwargs.pop('extra_label_classes', 'fw-bold') -%}
 
     {%- if field.widget.input_type == 'checkbox' -%}
         {%- set field_kwargs = kwargs -%}
