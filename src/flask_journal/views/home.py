@@ -13,4 +13,4 @@ def home() -> werkzeugResponse | str:
             kwargs["entry_count"] = len(current_user.entries)
         if current_user.settings.home_preview:
             kwargs["entries"] = current_user.entries[-5:]
-    return render_template("journal/home.html", **kwargs)
+    return render_template("journal/home.html", title="Home", **kwargs)
