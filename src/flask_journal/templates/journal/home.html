@@ -1,22 +1,15 @@
 {% extends "journal/base.html" %}
+{% from "journal/_utils.html" import render_tag_cloud, render_previews%}
 
 {%- block styles %}
-
-{% endblock styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/tagcloud.css') }}">
+{% endblock styles %}
+
 {%- block content %}
-
-Home Page
-
 {% if tags -%}
-<div class="card">
-    <div class="card-body">
-      <h4 class="card-title">Tags</h4>
-      {%- for tag in tags %}{% set tagsize = ((tag.entries | length) *10 ) // entry_count %} 
-      <a class="btn btn-tag-{{tagsize}} {% if tagsize < 5 %}btn-secondary{% else %}btn-primary{% endif %}{% if tagsize < 4 %} btn-sm{% elif tagsize > 6 %} btn-lg{% endif %}" href="/tag/{{tag.id}}/entries">{{tag.name}}</a>
-      {%- endfor %}
-    </div>
-</div>
+    {{ render_tag_cloud(tags, entry_count) }}
 {% endif -%}
-
+{% if entries -%}
+    {{ render_previews(entries) }}
+{% endif -%}
 {% endblock content %}

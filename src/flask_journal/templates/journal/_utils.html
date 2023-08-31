@@ -1,0 +1,27 @@
+
+{% macro render_tag_cloud(tags, entry_count) %}
+<div class="card my-2" id="tag_cloud">
+    <div class="card-body">
+      <h1 class="card-title">Tags</h4>
+      {%- for tag in tags %}{% set tagsize = ((tag.entries | length) *10 ) // ([entry_count, 1] | max) %} 
+      <a class="btn btn-tag-{{tagsize}} {% if tagsize < 5 %}btn-secondary{% else %}btn-primary{% endif %}{% if tagsize < 4 %} btn-sm{% elif tagsize > 6 %} btn-lg{% endif %}" href="/tag/{{tag.id}}/entries">{{tag.name}}</a>
+      {%- endfor %}
+    </div>
+</div>
+{%- endmacro %}
+
+{%- macro render_preview(entry) %}
+    <div class="card my-2" onclick='window.location="/entry?id={{ entry.id }}"'>
+        <div class="card-body">
+        <h2 class="card-title">{{ entry.title | title }}</h1> 
+        <p>{% for tag in entry.tags %}<a class="p-2 mx-1 badge border border-secondary-subtle text-bg-secondary link-underline link-underline-opacity-0" href="/tag/{{tag.id}}/entries">{{ tag.name }}</a>{% endfor -%}</p>
+        <p>{{ entry.content | truncate(500) }}</p>
+        </div>
+    </div>
+{%- endmacro %}
+
+{%- macro render_previews(entries) %}
+{% for entry in entries -%}
+    {{ render_preview(entry) }}
+{% endfor %}    
+{%- endmacro %}
