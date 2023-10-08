@@ -127,14 +127,23 @@ html_test_strings = {
             ' name="Created At" readonly="" type="text" value="%s">'
         ),
         "id": '<input id="id" name="id" type="hidden" value="%d">',
-        "roles": (
-            '<input class="form-control form-control-plaintext" id="Roles" name="Roles"'
-            ' readonly type="text" value="%s">'
-        ),
-        "email": (
-            '<input class="form-control form-control-plaintext" id="Email" name="Email"'
-            ' readonly type="email" value="%s">'
-        ),
+        "roles": {
+            "multiselect": (
+                '<select class="form-control form-control-plaintext"'
+                ' id="Roles" multiple name="Roles" readonly>'
+                "%s</select>"
+            ),
+            "user": (
+                '<option value="1">admin</option>'
+                '<option value="2">manage</option>'
+                '<option selected value="3">user</option>'
+            ),
+            "none": (
+                '<option value="1">admin</option>'
+                '<option value="2">manage</option>'
+                '<option value="3">user</option>'
+            ),
+        },
         "error": '<div class="invalid-feedback d-block">%s</div>',
     },
     "table": {

@@ -63,3 +63,6 @@ class JournalBaseModel(
                 raise AttributeError(cls, attr)
             attr = getattr(cls, attr)
         return cls.__fsa__.session.scalar(select(cls).where(attr == value))
+
+    def __str__(self: t.Self) -> str:
+        return f"{self.__class__.__name__}: {self.id}"

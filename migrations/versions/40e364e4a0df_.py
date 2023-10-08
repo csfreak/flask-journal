@@ -1,4 +1,4 @@
-"""empty message
+"""Initial DB Structure
 
 Revision ID: 40e364e4a0df
 Revises: 

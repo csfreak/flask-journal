@@ -63,6 +63,24 @@ def test_tag_view(logged_in_user_client: FlaskClient, tags: list[models.Tag]) ->
     assert html_test_strings["title"] % "View Tag" in rv.text
 
 
+@pytest.mark.parametrize("tags", [1], ids=["single"], indirect=True)
+def test_tag_view_rest(
+    logged_in_user_client: FlaskClient, tags: list[models.Tag]
+) -> None:
+    rv = logged_in_user_client.get("/tag/%i" % tags[0].id)
+    assert rv.status_code == 200
+    assert html_test_strings["title"] % "View Tag" in rv.text
+
+
+@pytest.mark.parametrize("tags", [1], ids=["single"], indirect=True)
+def test_tag_view_rest_entries(
+    logged_in_user_client: FlaskClient, tags: list[models.Tag]
+) -> None:
+    rv = logged_in_user_client.get("/tag/%i/entries" % tags[0].id)
+    assert rv.status_code == 200
+    assert html_test_strings["title"] % tags[0].name.title() in rv.text
+
+
 def test_tag_view_others(
     logged_in_user_client: FlaskClient, user: models.User, db: SQLAlchemy
 ) -> None:

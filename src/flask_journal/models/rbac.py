@@ -15,6 +15,12 @@ class Role(db.Model, RoleMixin):
     def find_by_name(cls: t.Self, value: str) -> t.Self:
         return cls.find_by_attr(cls.name, value)
 
+    def __repr__(self: t.Self) -> str:
+        return f"Role: {self.name}"
+
+    def __str__(self: t.Self) -> str:
+        return self.name
+
 
 class RolesUsers(db.Model):
     __tablename__ = "roles_users"
