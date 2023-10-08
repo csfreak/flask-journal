@@ -1,4 +1,4 @@
-"""empty message
+"""Add User Settings for Home Page Previews
 
 Revision ID: d0551f9f68ce
 Revises: 40e364e4a0df

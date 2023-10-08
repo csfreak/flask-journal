@@ -2,11 +2,13 @@ import logging
 import typing as t
 
 from flask_login import current_user
+from flask_wtf import FlaskForm
 from sqlalchemy import select
-from wtforms import DateTimeField, Form, FormField, StringField
+from wtforms import DateTimeField, FormField, SelectFieldBase, StringField, widgets
 from wtforms.validators import ValidationError
 
-from ..models import Role, Tag, User, UserSettings, db
+from ..models import Tag, User, UserSettings, db
+from ..models.base import JournalBaseModel
 from .widgets import PlainTextWidget
 
 logger = logging.getLogger(__name__)
@@ -65,37 +67,6 @@ class TagField(StringField):
         )
 
 
-class RoleField(StringField):
-    def process_formdata(self: t.Self, valuelist: list[str]) -> None:
-        if valuelist:
-            self.data: list[Role] = []
-            for role in valuelist[0].split(" "):
-                if role.strip() == "":
-                    continue
-                obj = Role.find_by_name(role)
-                if obj is not None:
-                    self.data.append(obj)
-        else:  # pragma: no cover
-            pass
-
-    def _value(self: t.Self) -> str:
-        return (
-            " ".join([role.name for role in self.data]) if self.data is not None else ""
-        )
-
-    def pre_validate(self: t.Self, form: Form) -> None:
-        raw_role_names = self.raw_data[0].split(" ")
-        processed_role_names = [role.name for role in self.data]
-        invalid_role_names = []
-        for raw_name in raw_role_names:
-            if raw_name and raw_name not in processed_role_names:
-                invalid_role_names.append(raw_name)
-        if len(invalid_role_names) != 0:
-            logger.error("found invalid role(s): %s", " ".join(invalid_role_names))
-            logger.debug("comparing %s to %s", raw_role_names, processed_role_names)
-            raise ValidationError("invalid role(s): %s" % " ".join(invalid_role_names))
-
-
 class UserSettingsField(FormField):
     def populate_obj(self: t.Self, obj: User, name: str) -> None:
         candidate = getattr(obj, name, None)
@@ -114,3 +85,63 @@ class ReadOnlyFormField(FormField):
 
     def populate_obj(self: t.Self, *args: t.Any, **kwargs: t.Any) -> None:
         pass
+
+
+class ModelSelectField(SelectFieldBase):
+    widget = widgets.Select()
+
+    def __init__(
+        self: t.Self,
+        label: str = None,
+        validators: callable = None,
+        model: JournalBaseModel = None,
+        exclude: JournalBaseModel | list[JournalBaseModel] = None,
+        **kwargs: t.Any,
+    ) -> None:
+        super().__init__(label, validators, **kwargs)
+        self.model = model
+        self.excludes = []
+        if exclude:
+            try:
+                self.excludes.extend(exclude)
+            except TypeError:
+                self.excludes.append(exclude)
+
+
+class ModelSelectMultipleField(ModelSelectField):
+    widget = widgets.Select(multiple=True)
+
+    def iter_choices(self: t.Self) -> tuple[str, str, bool]:
+        instances = db.session.scalars(select(self.model))
+        for instance in instances:
+            if instance not in self.excludes:
+                yield (
+                    instance.id,
+                    str(instance),
+                    self.data is not None and instance in self.data,
+                )
+
+    def process_data(self: t.Self, value: t.Any) -> None:
+        self.data = (
+            [instance for instance in value if isinstance(instance, self.model)]
+            if value
+            else []
+        )
+
+    def process_formdata(self: t.Self, valuelist: t.Any) -> None:
+        if not valuelist:
+            self.data = []
+            return
+        try:
+            self.data = [self.model.find_by_id(value) for value in valuelist]
+        except ValueError as exc:
+            raise ValueError(self.gettext("Invalid Choice: could not coerce.")) from exc
+
+    def pre_validate(self: t.Self, form: FlaskForm) -> None:
+        if self.data is None:
+            return
+        acceptable = {c[0] for c in self.iter_choices()}
+        if any(
+            not (isinstance(d, self.model) and d.id in acceptable) for d in self.data
+        ):
+            raise ValidationError("Invalid Value(s)")

@@ -17,7 +17,8 @@ if t.TYPE_CHECKING:
 
 class User(db.Model, UserMixin):
     email: Mapped[str] = mapped_column(String(255), unique=True)
-    password: Mapped[str] = mapped_column(String(255))
+    name: Mapped[t.Optional[str]] = mapped_column(String(255), unique=True)
+    password: Mapped[str] = mapped_column(String(255), nullable=False)
     fs_uniquifier: Mapped[str] = mapped_column(
         String(64), unique=True, default=uuid.uuid4().hex
     )
@@ -35,6 +36,9 @@ class User(db.Model, UserMixin):
     roles: Mapped[t.Optional[list["Role"]]] = relationship(secondary="roles_users")
     entries: Mapped[t.Optional[list["Entry"]]] = relationship(back_populates="user")
     tags: Mapped[t.Optional[list["Tag"]]] = relationship(back_populates="user")
+    shared_entries: Mapped[t.Optional[list["Entry"]]] = relationship(
+        secondary="shared_entries", back_populates="shared_with"
+    )
 
     settings: Mapped["UserSettings"] = relationship(back_populates="user")
 
@@ -42,7 +46,7 @@ class User(db.Model, UserMixin):
         return f"User: {self.email}"
 
     def __str__(self: t.Self) -> str:
-        return self.email
+        return self.name if self.name else self.email
 
     @property
     def immutable_attrs(self: t.Self) -> list[str]:

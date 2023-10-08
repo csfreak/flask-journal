@@ -4,14 +4,14 @@ from flask_wtf import FlaskForm
 from wtforms import BooleanField, EmailField, SelectField, StringField, SubmitField
 from wtforms.validators import Length
 
-from ..models import User
+from ..models import Role
 from ..views.themes import Theme
 from .base import CustomForm, UnmanagedForm
 from .fields import (
     DisplayDateTimeField,
     DisplayStringField,
+    ModelSelectMultipleField,
     ReadOnlyFormField,
-    RoleField,
     UserSettingsField,
 )
 
@@ -36,8 +36,9 @@ class UserSettingsForm(UserSettingsSubForm):
 
 class UserForm(CustomForm):
     email = EmailField(name="Email")
+    name = StringField(name="Name")
     confirmed_at = DisplayDateTimeField(name="Confirmed At")
-    roles = RoleField(name="Roles")
+    roles = ModelSelectMultipleField(name="Roles", model=Role)
     tracking = ReadOnlyFormField(UserTrackingForm, name="Tracking", label="Logins")
     settings = UserSettingsField(
         UserSettingsSubForm, name="Settings", label="User Settings"

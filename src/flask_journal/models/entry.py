@@ -1,7 +1,7 @@
 import base64
 import typing as t
 
-from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy import ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -19,6 +19,20 @@ class Entry(db.Model):
     tags: Mapped[list[Tag]] = relationship(
         secondary="entry_tags", back_populates="entries"
     )
+    shared_with = relationship(
+        "User",
+        secondary="shared_entries",
+        back_populates="shared_entries",
+        uselist=True,
+    )
+
+    @hybrid_property
+    def shared(self: t.Self) -> bool:
+        return self.public or len(self.shared_with) != 0
+
+    @shared.inplace.setter
+    def _shared_setter(self: t.Self, value: bool) -> None:
+        self.shared_with = []
 
     @hybrid_property
     def content(self: t.Self) -> str:
@@ -45,3 +59,11 @@ class Entry(db.Model):
     def _encode_data(self: t.Self, value: str) -> str:
         b: bytes = value.encode("UTF-8")
         return base64.b64encode(b).decode("UTF-8")
+
+
+class SharedEntry(db.Model):
+    __tablename__ = "shared_entries"
+    __table_args__ = (UniqueConstraint("entry_id", "user_id"),)
+
+    entry_id: Mapped[int] = mapped_column("entry_id", ForeignKey("entry.id"))
+    user_id: Mapped[int] = mapped_column("user_id", ForeignKey("user.id"))

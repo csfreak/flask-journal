@@ -17,6 +17,7 @@ def entries() -> werkzeugResponse | str:
             ("tag_names", "Tags", 2),
             ("created_at", "Created At", 2),
             ("encrypted", "Encrypted", 1),
+            ("shared", "Shared", 1),
         ],
         descending=True,
         endpoint=".entry",
