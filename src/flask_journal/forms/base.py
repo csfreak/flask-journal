@@ -25,6 +25,10 @@ class CustomForm(FlaskForm):
     def __init__(self: t.Self, *args: t.Any, **kwargs: t.Any) -> None:
         self.__name__ = type(self).__name__
         super().__init__(*args, **kwargs)
+        self.dynamic_setup()
+
+    def dynamic_setup(self: t.Self) -> None:
+        pass
 
     def populate_obj(self: t.Self, obj: JournalBaseModel) -> None:
         for name, field in self._fields.items():

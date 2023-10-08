@@ -31,7 +31,7 @@ def user() -> werkzeugResponse | str:
     return form_view(
         model=User,
         form_class=UserForm,
-        primary_fields=["Email", "Roles", "Tracking", "Settings"],
+        primary_fields=["Email", "Name", "Roles", "Tracking", "Settings"],
         table_view=".users",
         defaults={"password": get_random_pw_hash()},
     )
