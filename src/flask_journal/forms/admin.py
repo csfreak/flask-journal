@@ -4,7 +4,7 @@ from flask_wtf import FlaskForm
 from wtforms import BooleanField, EmailField, SelectField, StringField, SubmitField
 from wtforms.validators import Length
 
-from ..models import Role
+from ..models import Role, User
 from ..views.themes import Theme
 from .base import CustomForm, UnmanagedForm
 from .fields import (
