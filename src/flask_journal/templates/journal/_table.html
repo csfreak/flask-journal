@@ -3,7 +3,7 @@
 
 {% macro build_url(record, endpoint, url_tuples, model, pk_field) %}
     {% if model != None %}
-        {% set record = model.query.get(record[pk_field]) %}
+        {% set record = model.find_by_id(record[pk_field]) %}
     {% endif %}
     {% with url_params = {} -%}
         {%- do url_params.update(request.view_args if not endpoint else {}),
