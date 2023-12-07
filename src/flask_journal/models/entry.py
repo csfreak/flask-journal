@@ -1,22 +1,23 @@
 import base64
 import typing as t
 
-from sqlalchemy import Boolean, ForeignKey, Integer, String, Text
+from sqlalchemy import ForeignKey, String, Text
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import db
+from .tag import Tag
+from .user import User
 
 
 class Entry(db.Model):
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
-    _title: Mapped[str] = mapped_column(String(255), nullable=False)
-    _data: Mapped[str] = mapped_column(Text, nullable=False, default="")
-    encrypted: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    _title: Mapped[str] = mapped_column(String(255))
+    _data: Mapped[str] = mapped_column(Text, default="")
 
-    user = relationship("User", back_populates="entries", uselist=False)
-    tags = relationship(
-        "Tag", secondary="entry_tags", back_populates="entries", uselist=True
+    user: Mapped[User] = relationship(back_populates="entries")
+    tags: Mapped[list[Tag]] = relationship(
+        secondary="entry_tags", back_populates="entries"
     )
 
     @hybrid_property
@@ -39,20 +40,8 @@ class Entry(db.Model):
         if not data:
             return ""
         b: bytes = base64.b64decode(data)
-        if self.encrypted:
-            b = self._decrypt(b)  # pragma: no cover
         return b.decode("UTF-8")
 
     def _encode_data(self: t.Self, value: str) -> str:
         b: bytes = value.encode("UTF-8")
-        if self.encrypted:
-            b = self._encrypt(b)  # pragma: no cover
         return base64.b64encode(b).decode("UTF-8")
-
-    def _encrypt(self: t.Self, data: bytes) -> bytes:  # pragma: no cover
-        # TODO
-        return data
-
-    def _decrypt(self: t.Self, data: bytes) -> bytes:  # pragma: no cover
-        # TODO
-        return data
