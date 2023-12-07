@@ -2,7 +2,7 @@ from flask import render_template
 from flask_login import login_required
 
 from ..forms import TagForm
-from ..models import Tag
+from ..models import Tag, db
 from . import bp, utils, werkzeugResponse
 from .base import form_view, table_view
 
@@ -33,7 +33,7 @@ def tag(id: int | None = None) -> werkzeugResponse | str:
 
 @bp.route("/tag/<int:id>/entries")
 def tag_entries(id: int) -> werkzeugResponse | str:
-    tag = utils.build_query(model=Tag, filters=dict(id=id)).first()
+    tag = db.session.scalar(utils.build_select(model=Tag, filters=dict(id=id)))
     return render_template(
         "journal/tag.html",
         title=tag.name,

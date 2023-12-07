@@ -3,7 +3,7 @@ import typing as t
 
 from flask import abort, flash, request
 from flask_security import current_user
-from flask_sqlalchemy.query import Query
+from sqlalchemy import Select, select
 from wtforms.fields import SubmitField
 
 from flask_journal.forms.base import CustomForm
@@ -26,23 +26,24 @@ def process_request_id() -> int | None:
     return id
 
 
-def build_query(
+def build_select(
     model: JournalBaseModel, filters: dict[str, t.Any] | None = None
-) -> Query:
+) -> Select:
     include_deleted: bool = (
         True if current_user.has_role("manage") else False  # pyright: ignore
     )
-    query: Query = model.query
-    if filters is not None:
-        query = query.filter_by(**filters)
+    stmt: Select = select(model)
+    if filters is None:
+        filters = dict()
     if hasattr(model, "user"):
-        query = query.filter_by(user=current_user)
+        filters["user"] = current_user
     elif not current_user.has_role("admin"):  # pyright: ignore
         flash(f"Unable to Access Resource {model.__name__}")
         return abort(403)
-    query = query.execution_options(include_deleted=include_deleted)
 
-    return query
+    stmt = stmt.filter_by(**filters)
+    stmt = stmt.execution_options(include_deleted=include_deleted)
+    return stmt
 
 
 def form_submit_action(form: CustomForm) -> str:

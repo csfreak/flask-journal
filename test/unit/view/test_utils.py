@@ -64,32 +64,32 @@ def test_form_submit_action(app: Flask, action: str) -> None:
 
 @pytest.mark.parametrize("user", ["user3@example.test"], indirect=True)
 @pytest.mark.usefixtures("logged_in_user_context")
-def test_build_query_user_no_filters(
+def test_build_select_user_no_filters(
     app: Flask, user: User, model_class: MockModel
 ) -> None:
-    r_query = view_utils.build_query(model_class)
+    r_select = view_utils.build_select(model_class)
 
-    assert r_query.filter == dict(user=user)
-    assert not r_query.include_deleted
+    assert r_select.filter == dict(user=user)
+    assert not r_select.include_deleted
 
 
 @pytest.mark.parametrize("user", ["user2@example.test"], indirect=True)
 @pytest.mark.usefixtures("logged_in_user_context")
-def test_build_query_user_manage(app: Flask, model_class: MockModel) -> None:
-    r_query = view_utils.build_query(model_class)
+def test_build_select_user_manage(app: Flask, model_class: MockModel) -> None:
+    r_select = view_utils.build_select(model_class)
 
-    assert r_query.include_deleted
+    assert r_select.include_deleted
 
 
 @pytest.mark.parametrize("user", ["user3@example.test"], indirect=True)
 @pytest.mark.usefixtures("logged_in_user_context")
-def test_build_query_user_filters(
+def test_build_select_user_filters(
     app: Flask, user: User, monkeypatch: pytest.MonkeyPatch, model_class: MockModel
 ) -> None:
-    r_query = view_utils.build_query(model_class, filters={"id": 1})
+    r_select = view_utils.build_select(model_class, filters={"id": 1})
 
-    assert r_query.filter == dict(user=user, id=1)
-    assert not r_query.include_deleted
+    assert r_select.filter == dict(user=user, id=1)
+    assert not r_select.include_deleted
 
 
 @pytest.mark.parametrize(
@@ -98,13 +98,13 @@ def test_build_query_user_filters(
     indirect=True,
 )
 @pytest.mark.usefixtures("logged_in_user_context")
-def test_build_query_user_no_user_model(
+def test_build_select_user_no_user_model(
     app: Flask, user: User, monkeypatch: pytest.MonkeyPatch, model_class: MockModel
 ) -> None:
     monkeypatch.delattr(model_class, "user")
     if not user.has_role("admin"):
         with pytest.raises(HTTPException):
-            view_utils.build_query(model_class)
+            view_utils.build_select(model_class)
     else:
-        r_query = view_utils.build_query(model_class)
-        assert r_query.filter == dict()
+        r_select = view_utils.build_select(model_class)
+        assert r_select.filter == dict()
