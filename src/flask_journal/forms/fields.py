@@ -2,6 +2,7 @@ import logging
 import typing as t
 
 from flask_login import current_user
+from sqlalchemy import select
 from wtforms import DateTimeField, Form, FormField, StringField
 from wtforms.validators import ValidationError
 
@@ -49,7 +50,10 @@ class TagField(StringField):
             for tag in valuelist[0].split(" "):
                 if tag.strip() == "":
                     continue
-                obj = Tag.query.filter_by(name=tag, user=current_user).first()
+                obj = db.session.scalar(
+                    select(Tag).filter_by(name=tag, user=current_user)
+                )
+
                 if not obj:
                     obj = Tag(user=current_user, name=tag)
                     db.session.add(obj)
@@ -68,7 +72,7 @@ class RoleField(StringField):
             for role in valuelist[0].split(" "):
                 if role.strip() == "":
                     continue
-                obj = Role.query.filter_by(name=role).first()
+                obj = Role.find_by_name(role)
                 if obj is not None:
                     self.data.append(obj)
         else:  # pragma: no cover

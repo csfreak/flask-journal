@@ -1,20 +1,21 @@
 import typing as t
 
-from sqlalchemy import ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import db
+from .user import User
 
 
 class Tag(db.Model):
     __table_args__ = (UniqueConstraint("name", "user_id"),)
 
-    name: Mapped[str] = mapped_column(String(64), nullable=False)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
+    name: Mapped[str] = mapped_column(String(64))
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
 
-    user = relationship("User", back_populates="tags", uselist=False)
-    entries = relationship(
-        "Entry", secondary="entry_tags", back_populates="tags", uselist=True
+    user: Mapped[User] = relationship(back_populates="tags")
+    entries: Mapped[list] = relationship(
+        "Entry", secondary="entry_tags", back_populates="tags"
     )
 
     def __repr__(self: t.Self) -> str:
@@ -28,5 +29,5 @@ class EntryTags(db.Model):
     __tablename__ = "entry_tags"
     __table_args__ = (UniqueConstraint("entry_id", "tag_id"),)
 
-    entry_id: Mapped[int] = mapped_column("entry_id", Integer(), ForeignKey("entry.id"))
-    tag_id: Mapped[int] = mapped_column("tag_id", Integer(), ForeignKey("tag.id"))
+    entry_id: Mapped[int] = mapped_column("entry_id", ForeignKey("entry.id"))
+    tag_id: Mapped[int] = mapped_column("tag_id", ForeignKey("tag.id"))

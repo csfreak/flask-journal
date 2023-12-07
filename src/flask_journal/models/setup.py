@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 def init_roles(app: Flask) -> None:
     with app.app_context():
         for name, role in roles.items():
-            if Role.query.filter_by(name=name).first() is None:
+            if Role.find_by_name(name) is None:
                 logger.info(f"Created new role: {name}")
                 db.session.add(Role(name=name, **role))
         db.session.commit()
