@@ -38,7 +38,7 @@ def test_tags_view(
 ) -> None:
     rv = logged_in_user_client.get("/tags")
     tags = (
-        models.Tag.query.filter_by(user=user)
+        models.Tag.query.filter_by(user=user)  # LegacyQuery
         .execution_options(include_deleted=True)
         .all()
     )
@@ -93,7 +93,7 @@ def test_tag_create_post(logged_in_user_client: FlaskClient, user: models.User) 
     )
     assert rv.status_code == 200
     assert html_test_strings["title"] % "View Tag" in rv.text
-    tag = models.Tag.query.first()
+    tag = models.Tag.query.first()  # LegacyQuery
     assert isinstance(tag, models.Tag)
     assert tag.name == expected_name
 
@@ -124,7 +124,7 @@ def test_tag_view_post_others(
             assert tag.active
         case "Undelete":
             tag = (
-                models.Tag.query.filter_by(id=id)
+                models.Tag.query.filter_by(id=id)  # LegacyQuery
                 .execution_options(include_deleted=True)
                 .first()
             )
@@ -158,7 +158,7 @@ def test_tag_view_post(
     match button:
         case "Delete":
             tag = (
-                models.Tag.query.filter_by(id=id)
+                models.Tag.query.filter_by(id=id)  # LegacyQuery
                 .execution_options(include_deleted=True)
                 .first()
             )
@@ -174,7 +174,7 @@ def test_tag_view_post(
                 assert rv.status_code == 404
                 assert html_test_strings["title"] % "Error" in rv.text
                 tag = (
-                    models.Tag.query.filter_by(id=id)
+                    models.Tag.query.filter_by(id=id)  # LegacyQuery
                     .execution_options(include_deleted=True)
                     .first()
                 )

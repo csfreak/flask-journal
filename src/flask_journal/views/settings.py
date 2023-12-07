@@ -1,5 +1,6 @@
 from flask import Response, flash, render_template
 from flask_login import current_user, login_required
+from sqlalchemy import select
 
 from ..forms import UserSettingsForm
 from ..models import UserSettings, db
@@ -10,7 +11,8 @@ from .themes import Theme
 @bp.route("/settings", methods=["GET", "POST"])
 @login_required
 def settings() -> Response | str:
-    settings = UserSettings.query.filter_by(user=current_user).first()
+    settings = db.session.scalar(select(UserSettings).filter_by(user=current_user))
+
     form = UserSettingsForm(obj=settings)
 
     if form.validate_on_submit():
