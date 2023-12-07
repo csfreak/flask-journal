@@ -7,7 +7,7 @@ from werkzeug.exceptions import HTTPException
 
 from flask_journal.views import base as base_view
 
-from . import Form, MockDB, MockFlash, Model
+from . import Form, MockFlash, Model
 
 logger = logging.getLogger(__name__)
 
@@ -55,11 +55,6 @@ def flash(
 
 
 @pytest.fixture
-def mock_db(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(base_view, "db", MockDB())
-
-
-@pytest.fixture
 def error(request: pytest.FixtureRequest) -> Exception | None:
     return request.param
 
@@ -73,7 +68,7 @@ def test_get(model_class: Model, obj_id: None, form_class: Form) -> None:
     if obj_id:
         model = model_class()
         model.id = obj_id
-        model_class.query._items = [model]
+        model_class.select._items = [model]  # LegacyQuery
         expected_rf.pop("action")
 
     rf = base_view.form_view(model_class, form_class, "")
@@ -209,7 +204,7 @@ def test_post(
     if obj_id and not error and form_action != "Create":
         model = model_class()
         model.id = obj_id
-        model_class.query._items = [model]
+        model_class.select._items = [model]  # LegacyQuery
         expected_rf.pop("action")
         match form_action:
             case "Undelete":

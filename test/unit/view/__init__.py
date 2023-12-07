@@ -57,16 +57,45 @@ class MockPagination:
         yield from range(1, self.pages + 1)
 
 
-class MockQuery:
+class MockModel:
+    id: int = None
+    created_at: datetime = None
+    deleted_at: datetime = None
+
+    def __init__(self: t.Self, **kwargs: t.Any) -> None:
+        logger.debug("Initialize new MockModel")
+        self.user = kwargs.get("user")
+        self.created_at = kwargs.get("created_at", datetime.now())
+
+    def delete(self: t.Self) -> None:
+        self.deleted_at = datetime.now()
+
+    def undelete(self: t.Self) -> None:
+        self.deleted_at = None
+
+
+class MockSelect:  # LegacyQuery
     filter: dict[str, t.Any]
     include_deleted: bool = False
     order_field: bool = False
     order_desc: bool = False
     _items: list[Model] = []
 
-    def __init__(self: t.Self) -> None:
+    def __init__(self: t.Self, model: MockModel) -> None:
+        self.model = model
         logger.debug("Initialize New MockQuery")
         self.filter = {}
+
+    def __call__(self: t.Self, *args: t.Any) -> t.Self:
+        match len(args):
+            case 0:
+                return self
+            case 1:
+                if args[0] is self.model:
+                    return self
+                raise AttributeError("wrong value passed to select")
+            case _:
+                raise ValueError("to many values passed to select")
 
     def filter_by(self: t.Self, **kwargs: t.Any) -> t.Self:
         logger.debug("filter_by called with %s", kwargs)
@@ -87,31 +116,6 @@ class MockQuery:
 
         self.order_field = True
         return self
-
-    def paginate(self: t.Self, page: int, per_page: int) -> MockPagination:
-        logger.debug("Return new MockPagination")
-        return MockPagination(page, per_page, self._items)
-
-    def first(self: t.Self) -> Model:
-        return self._items[0] if self._items else None
-
-
-class MockModel:
-    query = MockQuery()
-    id: int = None
-    created_at: datetime = None
-    deleted_at: datetime = None
-
-    def __init__(self: t.Self, **kwargs: t.Any) -> None:
-        logger.debug("Initialize new MockModel")
-        self.user = kwargs.get("user")
-        self.created_at = kwargs.get("created_at", datetime.now())
-
-    def delete(self: t.Self) -> None:
-        self.deleted_at = datetime.now()
-
-    def undelete(self: t.Self) -> None:
-        self.deleted_at = None
 
 
 class MockForm:
@@ -155,11 +159,17 @@ class MockSession:
         if not hasattr(self, "add"):
             raise ValueError("commit called without add")
 
+    def scalar(self: t.Self, select: MockSelect) -> Model:
+        return select._items[0] if select._items else None
+
 
 class MockDB:
     def __init__(self: t.Self) -> None:
         logger.debug("Initialize new MockDB")
         self.session = MockSession()
+
+    def paginate(self: t.Self, select: MockSelect, **kwargs: t.Any) -> MockPagination:
+        return MockPagination(**kwargs, _items=select._items)
 
 
 class MockFlash:

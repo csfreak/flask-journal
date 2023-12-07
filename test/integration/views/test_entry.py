@@ -39,7 +39,7 @@ def test_entries_view(
 ) -> None:
     rv = logged_in_user_client.get("/entries")
     entries = (
-        models.Entry.query.filter_by(user=user)
+        models.Entry.query.filter_by(user=user)  # LegacyQuery
         .execution_options(include_deleted=True)
         .all()
     )
@@ -113,12 +113,12 @@ def test_entry_create_post(
     )
     assert rv.status_code == 200
     assert html_test_strings["title"] % "View Entry" in rv.text
-    entry = models.Entry.query.first()
+    entry = models.Entry.query.first()  # LegacyQuery
     assert isinstance(entry, models.Entry)
     assert entry.content == expected_body
     assert entry.content != entry._data
     for tag in expected_tags:
-        t = models.Tag.query.filter_by(name=tag, user=user).first()
+        t = models.Tag.query.filter_by(name=tag, user=user).first()  # LegacyQuery
         assert isinstance(t, models.Tag)
         assert t in entry.tags
 
@@ -152,7 +152,7 @@ def test_entry_view_post_others(
             assert entry.active
         case "Undelete":
             entry = (
-                models.Entry.query.filter_by(id=id)
+                models.Entry.query.filter_by(id=id)  # LegacyQuery
                 .execution_options(include_deleted=True)
                 .first()
             )
@@ -202,7 +202,7 @@ def test_entry_view_post(
                 assert rv.status_code == 404
                 assert html_test_strings["title"] % "Error" in rv.text
                 entry = (
-                    models.Entry.query.filter_by(id=id)
+                    models.Entry.query.filter_by(id=id)  # LegacyQuery
                     .execution_options(include_deleted=True)
                     .first()
                 )

@@ -4,19 +4,11 @@ import typing as t
 import pytest
 from flask import Flask
 
-from . import MockForm, MockModel, MockQuery
+from flask_journal import views
+
+from . import MockDB, MockForm, MockModel, MockSelect
 
 logger = logging.getLogger(__name__)
-
-
-@pytest.fixture
-def model_class() -> MockModel:
-    class model(MockModel):
-        query = MockQuery()
-        user = None
-
-    logger.debug("Create new MockModel class")
-    return model
 
 
 @pytest.fixture(scope="module")
@@ -42,3 +34,28 @@ def form_class() -> MockForm:
 
     logger.debug("Create new MockForm class")
     return form
+
+
+@pytest.fixture
+def mock_db(monkeypatch: pytest.MonkeyPatch) -> None:
+    db = MockDB()
+    monkeypatch.setattr(views.base, "db", db)
+    monkeypatch.setattr(views.tag, "db", db)
+
+
+@pytest.fixture
+def model_class(monkeypatch: pytest.MonkeyPatch, mock_db: None) -> MockModel:
+    class model(MockModel):
+        user = None
+        _select = None
+
+        @classmethod
+        @property
+        def select(cls: t.Self) -> MockSelect:
+            if cls._select is None:
+                cls._select = MockSelect(cls)
+            return cls._select
+
+    monkeypatch.setattr(views.utils, "select", model.select)
+    logger.debug("Create new MockModel class")
+    return model

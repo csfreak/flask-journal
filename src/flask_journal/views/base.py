@@ -4,7 +4,7 @@ import typing as t
 from flask import abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user
 from flask_sqlalchemy.pagination import Pagination
-from flask_sqlalchemy.query import Query
+from sqlalchemy import Select
 from sqlalchemy.orm.attributes import QueryableAttribute
 from sqlalchemy.sql import ColumnExpressionArgument, desc
 
@@ -54,9 +54,8 @@ def form_view(
     if id is None:
         id = utils.process_request_id()
 
-    query: Query = utils.build_query(model=model, filters=dict(id=id))
-
-    obj: JournalBaseModel = query.first()
+    select: Select = utils.build_select(model=model, filters=dict(id=id))
+    obj: JournalBaseModel = db.session.scalar(select)
 
     if obj is None:
         logger.debug("No %s loaded by query", model.__name__)
@@ -125,16 +124,16 @@ def table_view(
     page = request.args.get("page", 1, type=int)
     page_size = request.args.get("page_size", 10, type=int)
 
-    query: Query = utils.build_query(model)
+    select: Select = utils.build_select(model=model)
 
     if order_field and hasattr(model, order_field):
         order_attr: QueryableAttribute = getattr(model, order_field)
         order_exp: ColumnExpressionArgument = (
             desc(order_attr) if descending else order_attr
         )
-        query: Query = query.order_by(order_exp)
+        select: Select = select.order_by(order_exp)
 
-    pagination: Pagination = query.paginate(page=page, per_page=page_size)
+    pagination: Pagination = db.paginate(select, page=page, per_page=page_size)
     return render_template(
         "journal/tablebase.html",
         pagination=pagination,

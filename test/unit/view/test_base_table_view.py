@@ -42,7 +42,7 @@ def table_results(
 def test_no_results(
     app: Flask, route: str, model_class: MockModel, test_string: str
 ) -> None:
-    model_class.query._items = []
+    model_class.select._items = []  # LegacyQuery
 
     with app.test_request_context(route):
         rv = base_view.table_view(model_class, endpoint="test")
@@ -59,7 +59,7 @@ def test_1_page_result(
     model_class: MockModel,
     table_results: list[Model],
 ) -> None:
-    model_class.query._items = table_results
+    model_class.select._items = table_results  # LegacyQuery
     test_titles = [("id", "ID", 2), ("created_at", "Created At", 4)]
 
     with app.test_request_context(route):
@@ -88,7 +88,7 @@ def test_2_page_result(
     table_results: list[Model],
     page_number: int,
 ) -> None:
-    model_class.query._items = table_results
+    model_class.select._items = table_results  # LegacyQuery
     test_titles = [("id", "ID", 2), ("created_at", "Created At", 4)]
 
     with app.test_request_context(f"{route}?page={page_number}"):
@@ -123,14 +123,14 @@ def test_order_field(
     model_class: MockModel,
     order_field: str | None,
 ) -> None:
-    model_class.query._items = []
+    model_class.select._items = []  # LegacyQuery
 
     with app.test_request_context(route):
         base_view.table_view(model_class, endpoint="test", order_field=order_field)
         if order_field == "invalid" or order_field is None:
-            assert not model_class.query.order_field
+            assert not model_class.select.order_field  # LegacyQuery
         else:
-            assert model_class.query.order_field
+            assert model_class.select.order_field  # LegacyQuery
 
 
 @pytest.mark.parametrize("user", ["user3@example.test"], indirect=True)
@@ -143,7 +143,7 @@ def test_order_field_descending(
     order_field: str | None,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    model_class.query._items = []
+    model_class.select._items = []  # LegacyQuery
 
     def desc(*args: t.Any) -> str:
         return str(args)
@@ -155,8 +155,8 @@ def test_order_field_descending(
             model_class, endpoint="test", order_field=order_field, descending=True
         )
         if order_field == "invalid" or order_field is None:
-            assert not model_class.query.order_field
-            assert not model_class.query.order_desc
+            assert not model_class.select.order_field  # LegacyQuery
+            assert not model_class.select.order_desc  # LegacyQuery
         else:
-            assert model_class.query.order_field
-            assert model_class.query.order_desc
+            assert model_class.select.order_field  # LegacyQuery
+            assert model_class.select.order_desc  # LegacyQuery
