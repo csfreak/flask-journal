@@ -1,4 +1,4 @@
-"""empty message
+"""Cleanup unused encryption fields
 
 Revision ID: 1594ebf10015
 Revises: d0551f9f68ce
