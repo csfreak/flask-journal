@@ -3,6 +3,7 @@ import typing as t
 from datetime import datetime
 
 import pytest
+from flask_login import current_user
 from werkzeug.exceptions import HTTPException
 
 from flask_journal.views import base as base_view
@@ -64,12 +65,18 @@ def error(request: pytest.FixtureRequest) -> Exception | None:
 @pytest.mark.usefixtures("logged_in_user_context")
 def test_get(model_class: Model, obj_id: None, form_class: Form) -> None:
     model = None
-    expected_rf = {"form": form_class(), "model": model_class, "action": "new"}
+    expected_rf = {
+        "form": form_class(),
+        "model": model_class,
+        "action": "new",
+        "readonly": False,
+    }
     if obj_id:
         model = model_class()
         model.id = obj_id
-        model_class.select._items = [model]  # LegacyQuery
-        expected_rf.pop("action")
+        model_class.select._items = [model]
+        model.user = current_user
+        expected_rf["action"] = "view"
 
     rf = base_view.form_view(model_class, form_class, "")
     assert rf == expected_rf
@@ -199,13 +206,15 @@ def test_post(
         "form": form_class(),
         "model": model_class,
         "action": "new",
+        "readonly": False,
     }
     form_class()._valid = True
     if obj_id and not error and form_action != "Create":
         model = model_class()
         model.id = obj_id
-        model_class.select._items = [model]  # LegacyQuery
-        expected_rf.pop("action")
+        model_class.select._items = [model]
+        model.user = current_user
+        expected_rf["action"] = "view"
         match form_action:
             case "Undelete":
                 model.deleted_at = datetime.now()

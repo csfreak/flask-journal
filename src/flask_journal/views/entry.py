@@ -16,11 +16,29 @@ def entries() -> werkzeugResponse | str:
             ("title", "Title", 5),
             ("tag_names", "Tags", 2),
             ("created_at", "Created At", 2),
-            ("encrypted", "Encrypted", 1),
             ("shared", "Shared", 1),
         ],
         descending=True,
         endpoint=".entry",
+        shared=False,
+    )
+
+
+@bp.route("/entries/shared")
+@login_required
+def shared_entries() -> werkzeugResponse | str:
+    return table_view(
+        Entry,
+        titles=[
+            ("id", "#", 1),
+            ("user", "Shared By", 2),
+            ("title", "Title", 5),
+            ("tag_names", "Tags", 2),
+            ("created_at", "Created At", 2),
+        ],
+        descending=True,
+        endpoint=".entry",
+        shared=True,
     )
 
 
