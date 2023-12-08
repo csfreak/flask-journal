@@ -36,9 +36,6 @@ class User(db.Model, UserMixin):
     roles: Mapped[t.Optional[list["Role"]]] = relationship(secondary="roles_users")
     entries: Mapped[t.Optional[list["Entry"]]] = relationship(back_populates="user")
     tags: Mapped[t.Optional[list["Tag"]]] = relationship(back_populates="user")
-    shared_entries: Mapped[t.Optional[list["Entry"]]] = relationship(
-        secondary="shared_entries", back_populates="shared_with"
-    )
 
     settings: Mapped["UserSettings"] = relationship(back_populates="user")
 
