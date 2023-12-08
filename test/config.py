@@ -1,3 +1,5 @@
+from flask_bootstrap import Bootstrap5
+
 test_config = {
     "SECURITY_EMAIL_VALIDATOR_ARGS": {"test_environment": True},
     "SECURITY_PASSWORD_HASH": "plaintext",
@@ -180,15 +182,18 @@ html_test_strings = {
         "css": {
             "default": (
                 '<link rel="stylesheet"'
-                ' href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">'  # noqa: B950
+                f' href="https://cdn.jsdelivr.net/npm/bootstrap@{Bootstrap5.bootstrap_version}/dist/css/bootstrap.min.css">'  # noqa: B950
             ),
             "bootswatch": (
                 '<link rel="stylesheet"'
-                ' href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/%s/bootstrap.min.css">'  # noqa: B950
+                f' href="https://cdn.jsdelivr.net/npm/bootswatch@{Bootstrap5.bootstrap_version}/dist/%s/bootstrap.min.css">'  # noqa: B950
             ),
         },
     },
     "home": {
-        "tag_cloud": '<div class="card my-2" id="tag_cloud">\n    <div class="card-body">\n      <h1 class="card-title">Tags</h4> '
+        "tag_cloud": (
+            '<div class="card my-2" id="tag_cloud">\n    '
+            '<div class="card-body">\n      <h1 class="card-title">Tags</h4> '
+        )
     },
 }
