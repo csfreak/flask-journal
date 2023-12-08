@@ -61,6 +61,8 @@ class MockModel:
     id: int = None
     created_at: datetime = None
     deleted_at: datetime = None
+    ownable: bool = True
+    shareable: bool = False
 
     def __init__(self: t.Self, **kwargs: t.Any) -> None:
         logger.debug("Initialize new MockModel")

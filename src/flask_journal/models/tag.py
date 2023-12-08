@@ -4,16 +4,14 @@ from sqlalchemy import ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import db
-from .user import User
+from .mixin import OwnableMixin
 
 
-class Tag(db.Model):
+class Tag(db.Model, OwnableMixin):
     __table_args__ = (UniqueConstraint("name", "user_id"),)
 
     name: Mapped[str] = mapped_column(String(64))
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
 
-    user: Mapped[User] = relationship(back_populates="tags")
     entries: Mapped[list] = relationship(
         "Entry", secondary="entry_tags", back_populates="tags"
     )

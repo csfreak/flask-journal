@@ -9,6 +9,8 @@ from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.schema import MetaData
 from sqlalchemy_easy_softdelete.mixin import generate_soft_delete_mixin_class
 
+from .mixin import OwnableMixin, ShareableMixin
+
 
 class JournalBaseModel(
     DeclarativeBase,
@@ -66,3 +68,13 @@ class JournalBaseModel(
 
     def __str__(self: t.Self) -> str:
         return f"{self.__class__.__name__}: {self.id}"
+
+    @classmethod
+    @property
+    def ownable(cls: t.Self) -> bool:
+        return issubclass(cls, OwnableMixin)
+
+    @classmethod
+    @property
+    def shareable(cls: t.Self) -> bool:
+        return issubclass(cls, ShareableMixin)
