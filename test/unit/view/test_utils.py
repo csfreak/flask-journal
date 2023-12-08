@@ -108,3 +108,70 @@ def test_build_select_user_no_user_model(
     else:
         r_select = view_utils.build_select(model_class)
         assert r_select.filter == dict()
+
+
+@pytest.mark.parametrize(
+    "user",
+    ["user3@example.test", "user1@example.test"],
+    indirect=True,
+)
+@pytest.mark.usefixtures("logged_in_user_context")
+def test_build_select_shared_default(
+    app: Flask,
+    user: User,
+    monkeypatch: pytest.MonkeyPatch,
+    model_class: MockModel,
+) -> None:
+    monkeypatch.setattr(model_class, "shareable", True)
+    monkeypatch.setattr(
+        model_class.shared_with,
+        "_shared_with",
+        [user],
+    )
+    r_select = view_utils.build_select(model_class)
+    assert r_select.where_exp is True
+
+
+@pytest.mark.parametrize(
+    "user",
+    ["user3@example.test", "user1@example.test"],
+    indirect=True,
+)
+@pytest.mark.usefixtures("logged_in_user_context")
+def test_build_select_shared(
+    app: Flask,
+    user: User,
+    monkeypatch: pytest.MonkeyPatch,
+    model_class: MockModel,
+) -> None:
+    monkeypatch.setattr(model_class, "shareable", True)
+    monkeypatch.setattr(
+        model_class.shared_with,
+        "_shared_with",
+        [user],
+    )
+    r_select = view_utils.build_select(model_class, shared=True)
+    assert r_select.where_exp is True
+
+
+@pytest.mark.parametrize(
+    "user",
+    ["user3@example.test", "user1@example.test"],
+    indirect=True,
+)
+@pytest.mark.usefixtures("logged_in_user_context")
+def test_build_select_not_shared(
+    app: Flask,
+    user: User,
+    monkeypatch: pytest.MonkeyPatch,
+    model_class: MockModel,
+) -> None:
+    monkeypatch.setattr(model_class, "shareable", True)
+    monkeypatch.setattr(
+        model_class.shared_with,
+        "_shared_with",
+        [user],
+    )
+    r_select = view_utils.build_select(model_class, shared=False)
+    assert r_select.where_exp is False
+    assert r_select.filter == dict(user=user)

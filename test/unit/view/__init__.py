@@ -57,17 +57,38 @@ class MockPagination:
         yield from range(1, self.pages + 1)
 
 
+class MockInstAttr:
+    _shared_with: list
+
+    def __init__(self: t.Self, _shared_with: list | t.Any = None) -> None:
+        if isinstance(_shared_with, list):
+            self._shared_with = _shared_with
+        else:
+            self._shared_with = [_shared_with]
+
+    def any(self: t.Self, *args: bool) -> str:
+        self.any = args
+        return any(args)
+
+    def contains(self: t.Self, obj: t.Any) -> str:
+        self.contains = obj
+        return obj in self._shared_with
+
+
 class MockModel:
     id: int = None
     created_at: datetime = None
     deleted_at: datetime = None
     ownable: bool = True
     shareable: bool = False
+    shared_with: MockInstAttr = MockInstAttr()
 
     def __init__(self: t.Self, **kwargs: t.Any) -> None:
         logger.debug("Initialize new MockModel")
         self.user = kwargs.get("user")
         self.created_at = kwargs.get("created_at", datetime.now())
+        self._shared_users = kwargs.get("shared_with", list())
+        self.shared_with._shared_with = self._shared_users
 
     def delete(self: t.Self) -> None:
         self.deleted_at = datetime.now()
@@ -76,12 +97,13 @@ class MockModel:
         self.deleted_at = None
 
 
-class MockSelect:  # LegacyQuery
+class MockSelect:
     filter: dict[str, t.Any]
     include_deleted: bool = False
     order_field: bool = False
     order_desc: bool = False
     _items: list[Model] = []
+    where_exp = False
 
     def __init__(self: t.Self, model: MockModel) -> None:
         self.model = model
@@ -119,11 +141,15 @@ class MockSelect:  # LegacyQuery
         self.order_field = True
         return self
 
+    def where(self: t.Self, exp: t.Any) -> t.Self:
+        self.where_exp = exp
+        return self
+
 
 class MockForm:
     _valid: bool = False
 
-    def __init__(self: t.Any, *args: t.Any, **kwargs: t.Any) -> None:
+    def __init__(self: t.Self, *args: t.Any, **kwargs: t.Any) -> None:
         logger.debug("Initialize new MockForm")
         if not hasattr(self, "args"):
             self.args = []
