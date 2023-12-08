@@ -34,8 +34,8 @@ class User(db.Model, UserMixin):
     login_count: Mapped[int] = mapped_column(default=0)
 
     roles: Mapped[t.Optional[list["Role"]]] = relationship(secondary="roles_users")
-    entries: Mapped[t.Optional[list["Entry"]]] = relationship(back_populates="user")
-    tags: Mapped[t.Optional[list["Tag"]]] = relationship(back_populates="user")
+    # entries: Mapped[t.Optional[list["Entry"]]] = relationship(back_populates="user")
+    # tags: Mapped[t.Optional[list["Tag"]]] = relationship(back_populates="user")
 
     settings: Mapped["UserSettings"] = relationship(back_populates="user")
 

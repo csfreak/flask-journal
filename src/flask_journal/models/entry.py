@@ -1,22 +1,19 @@
 import base64
 import typing as t
 
-from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy import String, Text
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import db
-from .shareable import ShareableMixin
+from .mixin import ShareableMixin
 from .tag import Tag
-from .user import User
 
 
 class Entry(db.Model, ShareableMixin):
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     _title: Mapped[str] = mapped_column(String(255))
     _data: Mapped[str] = mapped_column(Text, default="")
 
-    user: Mapped[User] = relationship(back_populates="entries")
     tags: Mapped[list[Tag]] = relationship(
         secondary="entry_tags", back_populates="entries"
     )

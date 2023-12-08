@@ -144,6 +144,10 @@ html_test_strings = {
                 '<option value="3">user</option>'
             ),
         },
+        "email": (
+            '<input class="form-control form-control-plaintext" id="Email" name="Email"'
+            ' readonly type="email" value="%s">'
+        ),
         "error": '<div class="invalid-feedback d-block">%s</div>',
     },
     "table": {

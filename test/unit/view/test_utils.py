@@ -101,7 +101,7 @@ def test_build_select_user_filters(
 def test_build_select_user_no_user_model(
     app: Flask, user: User, monkeypatch: pytest.MonkeyPatch, model_class: MockModel
 ) -> None:
-    monkeypatch.delattr(model_class, "user")
+    monkeypatch.setattr(model_class, "ownable", False)
     if not user.has_role("admin"):
         with pytest.raises(HTTPException):
             view_utils.build_select(model_class)
