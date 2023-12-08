@@ -1,29 +1,28 @@
-import logging
 import typing as t
 
+from flask_security.core import UserMixin
 from sqlalchemy import Column, ForeignKey, Integer, Table, UniqueConstraint
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import Mapped, declared_attr, relationship
+from sqlalchemy.orm import Mapped, backref, declared_attr, mapped_column, relationship
 
-from .user import User
-
-logger = logging.getLogger(__name__)
+from ..utils import pluralize
 
 
-class ShareableMixin:
+class OwnableMixin:
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+
+    @declared_attr
+    def user(self: t.Self) -> Mapped[UserMixin]:
+        return relationship(
+            "User",
+            backref=backref(pluralize(self.__tablename__), uselist=True),
+            uselist=False,
+        )
+
+
+class ShareableMixin(OwnableMixin):
     _share_name: str = ""
     _share_table: Table = None
-
-    @classmethod
-    def _make_user_rel(cls: t.Self) -> Mapped[t.Optional[list[t.Self]]]:
-        return (
-            relationship(
-                cls,
-                secondary=cls._share_name,
-                back_populates="shared_with",
-                uselist=True,
-            ),
-        )
 
     @classmethod
     def _make_share_table(cls: t.Self) -> str:
@@ -44,10 +43,11 @@ class ShareableMixin:
         return cls._share_table
 
     @declared_attr
-    def shared_with(self: t.Self) -> Mapped[t.Optional[list[User]]]:
+    def shared_with(self: t.Self) -> Mapped[t.Optional[list[UserMixin]]]:
         return relationship(
             "User",
             secondary=lambda: self._make_share_table(),
+            backref=backref(f"shared_{pluralize(self.__tablename__)}", uselist=True),
             uselist=True,
         )
 

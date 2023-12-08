@@ -27,21 +27,37 @@ def process_request_id() -> int | None:
 
 
 def build_select(
-    model: JournalBaseModel, filters: dict[str, t.Any] | None = None
+    model: JournalBaseModel,
+    filters: dict[str, t.Any] | None = None,
+    shared: bool | None = None,
 ) -> Select:
     include_deleted: bool = (
         True if current_user.has_role("manage") else False  # pyright: ignore
     )
     stmt: Select = select(model)
-    if filters is None:
-        filters = dict()
-    if hasattr(model, "user"):
-        filters["user"] = current_user
-    elif not current_user.has_role("admin"):  # pyright: ignore
-        flash(f"Unable to Access Resource {model.__name__}")
-        return abort(403)
+    if filters is not None:
+        stmt = stmt.filter_by(**filters)
 
-    stmt = stmt.filter_by(**filters)
+    match (model.ownable, model.shareable, shared):
+        case (True, True, None):
+            stmt = stmt.where(
+                (model.user == current_user)
+                | (model.shared_with.any(model.shared_with.contains(current_user)))
+            )
+
+        case (True, True, True):
+            stmt = stmt.where(
+                (model.shared_with.any(model.shared_with.contains(current_user)))
+            )
+
+        case (False, False, _):
+            if not current_user.has_role("admin"):
+                flash(f"Unable to Access Resource {model.__name__}")
+                return abort(403)
+
+        case _:
+            stmt = stmt.filter_by(user=current_user)
+
     stmt = stmt.execution_options(include_deleted=include_deleted)
     return stmt
 
