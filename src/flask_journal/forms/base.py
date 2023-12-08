@@ -1,6 +1,7 @@
 import logging
 import typing as t
 
+from flask_login import current_user
 from flask_wtf import FlaskForm
 from wtforms import HiddenField, SubmitField
 
@@ -31,6 +32,11 @@ class CustomForm(FlaskForm):
         pass
 
     def populate_obj(self: t.Self, obj: JournalBaseModel) -> None:
+        if obj.ownable and obj.user != current_user:
+            logger.warn(
+                "refusing to update %s owned by %s as %s", obj, obj.user, current_user
+            )
+            return None
         for name, field in self._fields.items():
             if name not in obj.immutable_attrs and field.type != "SubmitField":
                 field.populate_obj(obj, name)

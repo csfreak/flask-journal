@@ -165,7 +165,9 @@
                 {%- endif -%}
             {%- endfor -%}
             </div>
-            {{ render_submit(form, action)}}
+            {% if not readonly -%}
+                {{ render_submit(form, action)}}
+            {%- endif %}
         {%- endif -%}
     </form>
 {%- endmacro -%}

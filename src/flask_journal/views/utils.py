@@ -47,7 +47,7 @@ def build_select(
 
         case (True, True, True):
             stmt = stmt.where(
-                (model.shared_with.any(model.shared_with.contains(current_user)))
+                model.shared_with.any(model.shared_with.contains(current_user))
             )
 
         case (False, False, _):

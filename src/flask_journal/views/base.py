@@ -53,15 +53,19 @@ def form_view(
     logger.debug("form view for model %s", model.__name__)
     if id is None:
         id = utils.process_request_id()
-
+    context.setdefault("action", "view")
+    context.setdefault("readonly", False)
+    context.setdefault("model", model)
     select: Select = utils.build_select(model=model, filters=dict(id=id))
     obj: JournalBaseModel = db.session.scalar(select)
 
     if obj is None:
         logger.debug("No %s loaded by query", model.__name__)
+    elif obj.ownable and obj.user != current_user:
+        context.update(dict(readonly=True))
 
     form = form_class(obj=obj)
-    context.update(dict(form=form, model=model))
+    context["form"] = form
     message: str = model.__name__
     category: str = "message"
     if form.validate_on_submit():
@@ -120,11 +124,12 @@ def table_view(
     order_field: str = "created_at",
     descending: bool = False,
     endpoint: str = "",
+    shared: bool | None = None,
 ) -> werkzeugResponse | str:
     page = request.args.get("page", 1, type=int)
     page_size = request.args.get("page_size", 10, type=int)
 
-    select: Select = utils.build_select(model=model)
+    select: Select = utils.build_select(model=model, shared=shared)
 
     if order_field and hasattr(model, order_field):
         order_attr: QueryableAttribute = getattr(model, order_field)
