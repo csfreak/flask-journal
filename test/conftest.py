@@ -1,10 +1,11 @@
 import logging
 from datetime import datetime
+from typing import Any, Generator
 
 import pytest
 from flask import Flask, g
 from flask.testing import FlaskClient
-from flask_security import AnonymousUser, datastore
+from flask_security import datastore
 from flask_sqlalchemy import SQLAlchemy
 
 from flask_journal.app import create_app
@@ -20,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module")
-def app() -> Flask:
+def app() -> Generator[Flask, None, None]:
     logger.debug("Initialize App")
     app = create_app(Config(mapping=test_config))
 
@@ -31,7 +32,7 @@ def app() -> Flask:
 
 
 @pytest.fixture
-def client(app: Flask) -> FlaskClient:
+def client(app: Flask) -> Generator[FlaskClient, None, None]:
     logger.debug("Initialize Client")
     with app.test_client() as client:
         yield client
@@ -39,7 +40,7 @@ def client(app: Flask) -> FlaskClient:
 
 
 @pytest.fixture()
-def db(app: Flask) -> SQLAlchemy:
+def db(app: Flask) -> Generator[SQLAlchemy, None, None]:
     logger.debug("Initialize DB")
     init_data(app)
     yield db_extension
@@ -49,7 +50,7 @@ def db(app: Flask) -> SQLAlchemy:
 
 
 @pytest.fixture
-def userdatastore(app: Flask, db: SQLAlchemy) -> datastore:
+def userdatastore(app: Flask, db: SQLAlchemy) -> Generator[datastore, None, None]:
     logger.debug("Initialize userdatastore")
     for user in security_config["users"]:
         enorm = security._mail_util.validate(user["email"])
@@ -80,18 +81,18 @@ def user(userdatastore: datastore, request: pytest.FixtureRequest) -> User:
 
 
 @pytest.fixture
-def logged_in_user_context(app: Flask, user: User) -> None:
+def logged_in_user_context(app: Flask, user: User) -> Generator[None, None, None]:
     with app.test_request_context():
-        if user is None:
-            user = AnonymousUser()
         logger.debug("Push new request_context with user %s logged in", user)
         g._login_user = user
         yield None
-        g._login_user = AnonymousUser()
+        g._login_user = None
 
 
 @pytest.fixture
-def logged_in_user_client(client: FlaskClient, user: User) -> FlaskClient:
+def logged_in_user_client(
+    client: FlaskClient, user: User
+) -> Generator[FlaskClient, None, None]:
     client.get("/auth/login")
     if user:
         client.post(
