@@ -98,7 +98,7 @@ def test_entry_create_post(
     expected_body = "lorem ipsum"
     expected_tags = [tag for tag in tags.split(" ") if tag]
     for tag in expected_tags:
-        if "existing" in tags:
+        if "existing" in tag:
             db.session.add(models.Tag(user=user, name=tag))
     db.session.commit()
 
