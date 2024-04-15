@@ -1,5 +1,5 @@
 import typing as t
-from datetime import datetime
+from datetime import UTC, datetime
 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import DateTime, Integer, select, sql
@@ -9,13 +9,11 @@ from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.schema import MetaData
 from sqlalchemy_easy_softdelete.mixin import generate_soft_delete_mixin_class
 
-from .mixin import OwnableMixin, ShareableMixin
-
 
 class JournalBaseModel(
     DeclarativeBase,
     generate_soft_delete_mixin_class(
-        delete_method_default_value=lambda: datetime.utcnow().replace(microsecond=0)
+        delete_method_default_value=lambda: datetime.now(UTC).replace(microsecond=0)
     ),
 ):
     metadata = MetaData(
@@ -39,6 +37,9 @@ class JournalBaseModel(
     )
     deleted_at: Mapped[t.Optional[datetime]] = mapped_column(DateTime(timezone=True))
 
+    ownable: bool = False
+    shareable: bool = False
+
     @hybrid_property
     def active(self: t.Self) -> bool:
         return self.deleted_at is None
@@ -46,7 +47,7 @@ class JournalBaseModel(
     @active.inplace.setter
     def _active_setter(self: t.Self, value: bool) -> None:
         if self.active != value:
-            self.deleted_at = datetime.utcnow() if self.active else None
+            self.deleted_at = datetime.now(UTC) if self.active else None
 
     @property
     def immutable_attrs(self: t.Self) -> list[str]:
@@ -68,13 +69,3 @@ class JournalBaseModel(
 
     def __str__(self: t.Self) -> str:
         return f"{self.__class__.__name__}: {self.id}"
-
-    @classmethod
-    @property
-    def ownable(cls: t.Self) -> bool:
-        return issubclass(cls, OwnableMixin)
-
-    @classmethod
-    @property
-    def shareable(cls: t.Self) -> bool:
-        return issubclass(cls, ShareableMixin)

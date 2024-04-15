@@ -19,6 +19,10 @@ class OwnableMixin:
             uselist=False,
         )
 
+    def __init_subclass__(cls: t.Self, **kwargs: t.Any) -> None:
+        super().__init_subclass__(**kwargs)
+        cls.ownable = True
+
 
 class ShareableMixin(OwnableMixin):
     _share_name: str = ""
@@ -58,3 +62,7 @@ class ShareableMixin(OwnableMixin):
     @shared.inplace.setter
     def _shared_setter(self: t.Self, value: bool) -> None:
         self.shared_with = []
+
+    def __init_subclass__(cls: t.Self, **kwargs: t.Any) -> None:
+        super().__init_subclass__(**kwargs)
+        cls.shareable = True
