@@ -1,6 +1,8 @@
 {% extends "journal/base.html" %}
-{% from "journal/_utils.html" import render_tag_cloud, render_previews%}
+{% from "journal/_utils.html" import render_previews%}
 
 {% block content %}
-{{ render_previews(entries) }}
+{% if entries -%}
+    {{ render_previews(entries) }}
+{% endif -%}
 {% endblock content %}

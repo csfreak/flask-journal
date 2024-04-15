@@ -3,9 +3,9 @@
 <div class="card my-2" id="tag_cloud">
     <div class="card-body">
       <h1 class="card-title">Tags</h4>
-      {%- for tag in tags %}{% set tagsize = ((tag.entries | length) *10 ) // ([entry_count, 1] | max) %} 
+      {%- for tag in tags %}{% if tag.entries %}{% set tagsize = ((tag.entries | length) *10 ) // ([entry_count, 1] | max) %} 
       <a class="btn btn-tag-{{tagsize}} {% if tagsize < 5 %}btn-secondary{% else %}btn-primary{% endif %}{% if tagsize < 4 %} btn-sm{% elif tagsize > 6 %} btn-lg{% endif %}" href="/tag/{{tag.id}}/entries">{{tag.name}}</a>
-      {%- endfor %}
+      {% endif %}{%- endfor %}
     </div>
 </div>
 {%- endmacro %}
