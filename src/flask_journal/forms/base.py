@@ -26,10 +26,6 @@ class CustomForm(FlaskForm):
     def __init__(self: t.Self, *args: t.Any, **kwargs: t.Any) -> None:
         self.__name__ = type(self).__name__
         super().__init__(*args, **kwargs)
-        self.dynamic_setup()
-
-    def dynamic_setup(self: t.Self) -> None:
-        pass
 
     def populate_obj(self: t.Self, obj: JournalBaseModel) -> None:
         if obj.ownable and obj.user != current_user:
@@ -41,7 +37,7 @@ class CustomForm(FlaskForm):
             if name not in obj.immutable_attrs and field.type != "SubmitField":
                 field.populate_obj(obj, name)
         db.session.add(obj)
-        db.session.commit()
+        db.session.flush()
 
     def validate_on_submit(
         self: t.Self, extra_validators: dict[str, t.Callable] | None = None

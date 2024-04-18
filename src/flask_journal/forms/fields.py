@@ -4,6 +4,7 @@ import typing as t
 from flask_login import current_user
 from flask_wtf import FlaskForm
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 from wtforms import DateTimeField, FormField, SelectFieldBase, StringField, widgets
 from wtforms.validators import ValidationError
 
@@ -53,18 +54,34 @@ class TagField(StringField):
                 if tag.strip() == "":
                     continue
                 obj = db.session.scalar(
-                    select(Tag).filter_by(name=tag, user=current_user)
+                    select(Tag)
+                    .filter_by(name=tag, user=current_user)
+                    .options(joinedload(Tag.entries))
                 )
 
                 if not obj:
                     obj = Tag(user=current_user, name=tag)
-                    db.session.add(obj)
                 self.data.append(obj)
 
     def _value(self: t.Self) -> str:
         return (
             " ".join([tag.name for tag in self.data]) if self.data is not None else ""
         )
+
+    def populate_obj(self: t.Self, obj: JournalBaseModel, name: str) -> None:
+        """
+        Populates `obj.<name>` with the field's data.
+
+        :note: This is a destructive operation. If `obj.<name>` already exists,
+               it will be overridden. Use with caution.
+        """
+        obj.tags = []
+        if isinstance(self.data, list):
+            for item in self.data:
+                obj.tags.append(item)
+                db.session.add(item)
+        else:
+            obj.tags.append(self.data)
 
 
 class UserSettingsField(FormField):
@@ -111,7 +128,9 @@ class ModelSelectField(SelectFieldBase):
 class ModelSelectMultipleField(ModelSelectField):
     widget = widgets.Select(multiple=True)
 
-    def iter_choices(self: t.Self) -> tuple[str, str, bool]:
+    def iter_choices(
+        self: t.Self,
+    ) -> t.Generator[tuple[str, str, bool, dict], None, None]:
         instances = db.session.scalars(select(self.model))
         for instance in instances:
             if instance not in self.excludes:
@@ -119,6 +138,7 @@ class ModelSelectMultipleField(ModelSelectField):
                     instance.id,
                     str(instance),
                     self.data is not None and instance in self.data,
+                    dict(),
                 )
 
     def process_data(self: t.Self, value: t.Any) -> None:
