@@ -78,16 +78,16 @@ def form_view(
                     defaults["user"] = current_user
                 obj = model(**defaults)
                 form.populate_obj(obj)
-                db.session.add(obj)
+                # Reload form data from object to populate DB created values in display
+                form.process(obj=obj, formdata=None)
                 db.session.commit()
-                form.process(obj=obj)
                 id = obj.id
                 message = f"{message} Created"
             case "Update" if obj:
                 form.populate_obj(obj)
-                db.session.add(obj)
+                # Reload form data from object to populate DB created values in display
+                form.process(obj=obj, formdata=None)
                 db.session.commit()
-                form.process(obj=obj)
                 message = f"{message} Updated"
             case "Edit" if obj:
                 context["action"] = "edit"
