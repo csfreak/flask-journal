@@ -193,7 +193,7 @@ html_test_strings = {
     "home": {
         "tag_cloud": (
             '<div class="card my-2" id="tag_cloud">\n    '
-            '<div class="card-body">\n      <h1 class="card-title">Tags</h4> '
+            '<div class="card-body">\n      <h1 class="card-title">Tags</h4>'
         )
     },
 }

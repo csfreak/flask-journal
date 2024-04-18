@@ -29,7 +29,7 @@ def test_home_view_authenticated(
 ) -> None:
     db.session.add(Tag(name="test", user=user))
     db.session.commit()
-    
+
     rv = logged_in_user_client.get("/home")
     assert rv.status_code == 200
     assert html_test_strings["title"] % "Home" in rv.text
