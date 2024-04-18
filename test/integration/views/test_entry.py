@@ -88,8 +88,22 @@ def test_entry_create_view(
 
 @pytest.mark.parametrize(
     "tags",
-    ["", "existingtag", "newtag", "newtag existingtag"],
-    ids=["no-tag", "existing-tag", "new-tag", "multiple-tags"],
+    [
+        "",
+        "existingtag",
+        "newtag",
+        "existingtag otherexistingtag",
+        "newtag othernewtag",
+        "newtag existingtag",
+    ],
+    ids=[
+        "no-tag",
+        "existing-tag",
+        "new-tag",
+        "multiple-existing-tags",
+        "multiple-new-tags",
+        "new-and-existing-tags",
+    ],
 )
 def test_entry_create_post(
     logged_in_user_client: FlaskClient, user: models.User, tags: str, db: SQLAlchemy
