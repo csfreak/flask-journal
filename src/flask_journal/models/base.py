@@ -1,3 +1,4 @@
+import logging
 import typing as t
 from datetime import UTC, datetime
 
@@ -7,15 +8,11 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.schema import MetaData
-from sqlalchemy_easy_softdelete.mixin import generate_soft_delete_mixin_class
+
+logger = logging.getLogger(__name__)
 
 
-class JournalBaseModel(
-    DeclarativeBase,
-    generate_soft_delete_mixin_class(
-        delete_method_default_value=lambda: datetime.now(UTC).replace(microsecond=0)
-    ),
-):
+class JournalBaseModel(DeclarativeBase):
     metadata = MetaData(
         naming_convention={
             "ix": "ix_%(column_0_label)s",
@@ -47,7 +44,7 @@ class JournalBaseModel(
     @active.inplace.setter
     def _active_setter(self: t.Self, value: bool) -> None:
         if self.active != value:
-            self.deleted_at = datetime.now(UTC) if self.active else None
+            self.undelete() if value else self.delete()
 
     @property
     def immutable_attrs(self: t.Self) -> list[str]:
@@ -66,6 +63,20 @@ class JournalBaseModel(
                 raise AttributeError(cls, attr)
             attr = getattr(cls, attr)
         return cls.__fsa__.session.scalar(select(cls).where(attr == value))
+
+    def delete(self: t.Self) -> None:
+        if self.deleted_at:
+            logger.warning(
+                "Unable to delete %s: already deleted at %s", self, self.deleted_at
+            )
+            return None
+        self.deleted_at = datetime.now(UTC).replace(microsecond=0)
+
+    def undelete(self: t.Self) -> None:
+        if self.deleted_at is None:
+            logger.warning("Unable to undelete %s: 'deleted_at' is None")
+            return None
+        self.deleted_at = None
 
     def __str__(self: t.Self) -> str:
         return f"{self.__class__.__name__}: {self.id}"
