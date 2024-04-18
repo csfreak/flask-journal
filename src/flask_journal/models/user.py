@@ -5,6 +5,7 @@ from datetime import datetime
 from flask_security.core import UserMixin
 from sqlalchemy import DateTime, Enum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy_easy_softdelete.hook import IgnoredTable
 
 from ..views.themes import Theme
 from .db import db
@@ -54,7 +55,7 @@ class User(db.Model, UserMixin):
         return self
 
 
-class UserSettings(db.Model):
+class UserSettings(db.Model, IgnoredTable):
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
 
     theme: Mapped[Theme] = mapped_column(Enum(Theme), default="default")
