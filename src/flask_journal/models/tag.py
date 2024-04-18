@@ -1,6 +1,6 @@
 import typing as t
 
-from sqlalchemy import ForeignKey, String, UniqueConstraint
+from sqlalchemy import Column, ForeignKey, Integer, String, Table, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import db
@@ -23,9 +23,9 @@ class Tag(db.Model, OwnableMixin):
         return self.name
 
 
-class EntryTags(db.Model):
-    __tablename__ = "entry_tags"
-    __table_args__ = (UniqueConstraint("entry_id", "tag_id"),)
-
-    entry_id: Mapped[int] = mapped_column("entry_id", ForeignKey("entry.id"))
-    tag_id: Mapped[int] = mapped_column("tag_id", ForeignKey("tag.id"))
+EntryTags = Table(
+    "entry_tags",
+    db.metadata,
+    Column("entry_id", Integer(), ForeignKey("entry.id"), primary_key=True),
+    Column("tag_id", Integer(), ForeignKey("tag.id"), primary_key=True),
+)
