@@ -1,4 +1,4 @@
-FROM python:3.11-alpine as builder
+FROM python:3.12-alpine as builder
 
 WORKDIR /app
 COPY dist/*.whl /app/dist/ 
@@ -8,7 +8,7 @@ RUN python3 -mvenv /app/.venv && \
     pip3 install --find-links=dist/ 'flask-journal[deploy]'  && \
     rm -rf /app/dist
 
-FROM python:3.11-alpine 
+FROM python:3.12-alpine 
 
 WORKDIR /app
 COPY --from=builder /app /app
