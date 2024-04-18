@@ -1,7 +1,7 @@
 import typing as t
 
 from flask_security.core import RoleMixin
-from sqlalchemy import ForeignKey, String, UniqueConstraint
+from sqlalchemy import Column, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .db import db
@@ -22,9 +22,9 @@ class Role(db.Model, RoleMixin):
         return self.name
 
 
-class RolesUsers(db.Model):
-    __tablename__ = "roles_users"
-    __table_args__ = (UniqueConstraint("user_id", "role_id"),)
-
-    user_id: Mapped[int] = mapped_column("user_id", ForeignKey("user.id"))
-    role_id: Mapped[int] = mapped_column("role_id", ForeignKey("role.id"))
+RoleUsers = Table(
+    "roles_users",
+    db.metadata,
+    Column("user_id", Integer(), ForeignKey("user.id"), primary_key=True),
+    Column("role_id", Integer(), ForeignKey("role.id"), primary_key=True),
+)

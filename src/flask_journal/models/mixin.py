@@ -1,11 +1,14 @@
+import logging
 import typing as t
 
 from flask_security.core import UserMixin
-from sqlalchemy import Column, ForeignKey, Integer, Table, UniqueConstraint
+from sqlalchemy import Column, ForeignKey, Integer, Table
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, backref, declared_attr, mapped_column, relationship
 
 from ..utils import pluralize
+
+logger = logging.getLogger(__name__)
 
 
 class OwnableMixin:
@@ -15,7 +18,11 @@ class OwnableMixin:
     def user(self: t.Self) -> Mapped[UserMixin]:
         return relationship(
             "User",
-            backref=backref(pluralize(self.__tablename__), uselist=True),
+            backref=backref(
+                pluralize(self.__tablename__),
+                uselist=True,
+                single_parent=True,
+            ),
             uselist=False,
         )
 
@@ -40,9 +47,9 @@ class ShareableMixin(OwnableMixin):
                     f"{cls.__tablename__}_id",
                     Integer(),
                     ForeignKey(f"{cls.__tablename__}.id"),
+                    primary_key=True,
                 ),
-                Column("user_id", Integer(), ForeignKey("user.id")),
-                UniqueConstraint(f"{cls.__tablename__}_id", "user_id"),
+                Column("user_id", Integer(), ForeignKey("user.id"), primary_key=True),
             )
         return cls._share_table
 
