@@ -1,3 +1,10 @@
 exclude .gitignore
+exclude coverage.xml
+exclude .pytest*
+
+
+prune dist
 prune .github
+prune .tekton
+
 graft src/flask_journal/templates/
