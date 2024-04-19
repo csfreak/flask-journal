@@ -119,7 +119,9 @@ spec:
         - name: revision
           value: $(params.revision)
         - name: depth
-          value: "2"
+          value: "0"
+        - name: fetchTags
+          value: "true"
       runAfter:
         - init
       taskRef:
