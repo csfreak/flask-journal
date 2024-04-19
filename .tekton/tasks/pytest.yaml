@@ -36,7 +36,7 @@ spec:
     workingDir: $(workspaces.source.path)
     volumeMounts:
       - name: venv-dir
-        path: /venv
+        mountPath: /venv
   volumes:
     - name: venv-dir
       emptyDir: {}
