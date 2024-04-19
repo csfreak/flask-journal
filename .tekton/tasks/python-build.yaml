@@ -1,0 +1,57 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: python-build
+  annotations:
+    tekton.dev/categories: Building
+    tekton.dev/pipelines.minVersion: "0.12.1"
+    tekton.dev/tags: python, build
+    tekton.dev/displayName: python build
+    tekton.dev/platforms: "linux/amd64,linux/s390x,linux/ppc64le"
+spec:
+  description: >-
+    This task can be used run python build
+  workspaces:
+    - name: source
+  params:
+    - name: PYTHON
+      description: The used Python version, more precisely the tag for the Python image
+      type: string
+      default: "latest"
+    - name: SOURCE_PATH
+      description: The path to the source code
+      default: "source"
+    - name: DEST_PATH
+      description: The path were build artifacts will be created
+      default: "dist/"
+  results:
+    - name: build-artifacts
+      description: Files created by build process
+      type: string
+  stepTemplate:
+    image: docker.io/python:$(inputs.params.PYTHON)
+    workingDir: $(workspaces.source.path)/$(inputs.params.SOURCE_PATH)
+    volumeMounts:
+      - name: venv-dir
+        path: /venv
+  volumes:
+    - name: venv-dir
+      emptyDir: {}
+  steps:
+    - name: setup-venv
+      script: |
+        pip -m venv /venv
+    - name: install-requirement
+      script: |
+        /venv/bin/activate
+        set -e
+        pip install build
+    - name: pytest
+      script: |
+        /venv/bin/activate
+        set -e
+        python -m build
+    - name: get-builds
+      script: |
+        ls -1 $(inputs.params.DEST_PATH) | tee $(results.build-artifacts.path)
