@@ -64,10 +64,9 @@ log_level = 'DEBUG'
 addopts = "--capture=sys --cov --junitxml=.pytest.xml -n auto --ignore-flaky"
 filterwarnings = [
     "ignore:'get_token_status' is deprecated - use check_and_get_token_status instead:DeprecationWarning:flask_security",
-    "ignore: 'flask.Markup' is deprecated and will be removed in Flask 2.4. Import 'markupsafe.Markup' instead.:DeprecationWarning:flask_security",
-    "ignore: 'flask.Markup' is deprecated and will be removed in Flask 2.4. Import 'markupsafe.Markup' instead.:DeprecationWarning:flask_wtf",
     "ignore: 'crypt' is deprecated and slated for removal in Python 3.13:DeprecationWarning:passlib",
-    "ignore: pkg_resources is deprecated as an API:DeprecationWarning"
+    "ignore: pkg_resources is deprecated as an API:DeprecationWarning",
+    "ignore: Object of type .* not in session, add operation along .* will not proceed:sqlalchemy.exc.SAWarning"
 ]
 markers = []
 
