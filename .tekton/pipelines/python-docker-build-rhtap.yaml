@@ -118,7 +118,7 @@ spec:
           value: $(params.git-url)
         - name: revision
           value: $(params.revision)
-        - depth: depth
+        - name: depth
           value: "2"
       runAfter:
         - init
