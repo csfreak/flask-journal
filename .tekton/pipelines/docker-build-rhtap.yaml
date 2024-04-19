@@ -181,25 +181,25 @@ spec:
       taskRef:
         kind: Task
         name: acs-image-scan
-    - name: acs-deploy-check
-      params:
-        - name: rox-secret-name
-          value: $(params.stackrox-secret)
-        - name: gitops-repo-url
-          value: $(params.git-url)-gitops
-        - name: insecure-skip-tls-verify
-          value: "true"
-      runAfter:
-        - update-deployment
-      taskRef:
-        kind: Task
-        name: acs-deploy-check
-      when:
-        - input: $(params.event-type)
-          operator: notin
-          values:
-            - pull_request
-            - Merge Request
+    # - name: acs-deploy-check
+    #   params:
+    #     - name: rox-secret-name
+    #       value: $(params.stackrox-secret)
+    #     - name: gitops-repo-url
+    #       value: $(params.git-url)-gitops
+    #     - name: insecure-skip-tls-verify
+    #       value: "true"
+    #   runAfter:
+    #     - update-deployment
+    #   taskRef:
+    #     kind: Task
+    #     name: acs-deploy-check
+    #   when:
+    #     - input: $(params.event-type)
+    #       operator: notin
+    #       values:
+    #         - pull_request
+    #         - Merge Request
     # - name: update-deployment
     #   params:
     #     - name: gitops-repo-url
