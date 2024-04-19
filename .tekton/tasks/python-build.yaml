@@ -47,7 +47,7 @@ spec:
     - name: install-requirements
       script: |
         #!/usr/bin/env bash
-        source/venv/bin/activate
+        source /venv/bin/activate
         set -e
         pip install build
     - name: pytest
