@@ -2,7 +2,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: pytest-venv
+  name: pytest
   annotations:
     tekton.dev/categories: Testing
     tekton.dev/pipelines.minVersion: "0.12.1"
