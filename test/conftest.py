@@ -1,11 +1,11 @@
 import logging
 from datetime import datetime
-from typing import Any, Generator
+from typing import Generator
 
 import pytest
 from flask import Flask, g
 from flask.testing import FlaskClient
-from flask_security import datastore
+from flask_security import UserDatastore
 from flask_sqlalchemy import SQLAlchemy
 
 from flask_journal.app import create_app
@@ -39,7 +39,7 @@ def client(app: Flask) -> Generator[FlaskClient, None, None]:
     logger.debug("Teardown Client")
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def db(app: Flask) -> Generator[SQLAlchemy, None, None]:
     logger.debug("Initialize DB")
     init_data(app)
@@ -50,7 +50,7 @@ def db(app: Flask) -> Generator[SQLAlchemy, None, None]:
 
 
 @pytest.fixture
-def userdatastore(app: Flask, db: SQLAlchemy) -> Generator[datastore, None, None]:
+def userdatastore(app: Flask, db: SQLAlchemy) -> Generator[UserDatastore, None, None]:
     logger.debug("Initialize userdatastore")
     for user in security_config["users"]:
         enorm = security._mail_util.validate(user["email"])
@@ -76,7 +76,7 @@ def userdatastore(app: Flask, db: SQLAlchemy) -> Generator[datastore, None, None
     params=["user1@example.test", "user2@example.test", "user3@example.test"],
     ids=["admin-user", "manage-user", "base-user"],
 )
-def user(userdatastore: datastore, request: pytest.FixtureRequest) -> User:
+def user(userdatastore: UserDatastore, request: pytest.FixtureRequest) -> User:
     return userdatastore.find_user(email=request.param)
 
 

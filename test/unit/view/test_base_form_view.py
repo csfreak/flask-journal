@@ -48,7 +48,7 @@ def form_action(monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest)
 @pytest.fixture
 def flash(
     monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest
-) -> dict[str : t.Any]:
+) -> t.Generator[dict[str : t.Any], None, None]:
     logger.debug("patching flash")
     flash = MockFlash(**request.param)
     monkeypatch.setattr(base_view, "flash", flash.flash)

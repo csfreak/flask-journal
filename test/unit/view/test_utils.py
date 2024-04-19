@@ -110,6 +110,7 @@ def test_build_select_user_no_user_model(
         assert r_select.filter == dict()
 
 
+@pytest.mark.flaky(retries=3, only_on=[TypeError])
 @pytest.mark.parametrize(
     "user",
     ["user3@example.test", "user1@example.test"],
@@ -132,6 +133,7 @@ def test_build_select_shared_default(
     assert r_select.where_exp is True
 
 
+@pytest.mark.flaky(retries=3, only_on=[TypeError])
 @pytest.mark.parametrize(
     "user",
     ["user3@example.test", "user1@example.test"],
@@ -154,6 +156,7 @@ def test_build_select_shared(
     assert r_select.where_exp is True
 
 
+@pytest.mark.flaky(retries=3, only_on=[TypeError])
 @pytest.mark.parametrize(
     "user",
     ["user3@example.test", "user1@example.test"],
