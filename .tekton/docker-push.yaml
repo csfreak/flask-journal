@@ -20,17 +20,19 @@ metadata:
 spec:
   params:
     - name: git-url
-      value: '{{repo_url}}'
+      value: "{{repo_url}}"
     - name: image-expires-after
       value: 5d
     - name: output-image
       value: homelab.docker.homelab.csfreak.com/homelab/flask-journal:{{revision}}
     - name: revision
-      value: '{{revision}}'
+      value: "{{revision}}"
     - name: event-type
-      value: '{{event_type}}'
+      value: "{{event_type}}"
+    - name: python-version
+      value: "3.12"
   pipelineRef:
-    name: docker-build-rhtap
+    name: python-docker-build-rhtap
   workspaces:
     - name: git-auth
       secret:

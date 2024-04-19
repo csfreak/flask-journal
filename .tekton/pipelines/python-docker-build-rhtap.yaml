@@ -86,6 +86,10 @@ spec:
       description: Event that triggered the pipeline run, e.g. push, pull_request
       name: event-type
       type: string
+    - default: "latest"
+      description: Python version to use for test and build
+      name: python-version
+      type: string
   results:
     - name: IMAGE_URL
       value: $(tasks.build-container.results.IMAGE_URL)
@@ -128,6 +132,42 @@ spec:
           workspace: workspace
         - name: basic-auth
           workspace: git-auth
+    - name: run-pytest
+      params:
+        - name: PYTHON
+          value: $(params.python-version)
+        - name: REQUIREMENTS_FILE
+          value: test/requirements.txt
+        - name: INSTALLABLE
+          value: "True"
+      runAfter:
+        - clone-repository
+      taskRef:
+        name: pytest
+      when:
+        - input: $(tasks.init.results.build)
+          operator: in
+          values:
+            - "true"
+      workspaces:
+        - name: source
+          workspace: workspace
+    - name: run-python-build
+      params:
+        - name: PYTHON
+          value: $(params.python-version)
+      runAfter:
+        - clone-repository
+      taskRef:
+        name: python-build
+      when:
+        - input: $(tasks.init.results.build)
+          operator: in
+          values:
+            - "true"
+      workspaces:
+        - name: source
+          workspace: workspace
     - name: build-container
       params:
         - name: IMAGE
@@ -141,14 +181,15 @@ spec:
         - name: COMMIT_SHA
           value: $(tasks.clone-repository.results.commit)
       runAfter:
-        - clone-repository
+        - run-python
+        - run-python-build
       taskRef:
         name: buildah-rhtap
       when:
-        - input: $(tasks.init.results.build)
-          operator: in
+        - input: $(tasks.run-python-build.results.build-artifacts)
+          operator: notin
           values:
-            - "true"
+            - ""
       workspaces:
         - name: source
           workspace: workspace
