@@ -5,7 +5,7 @@ metadata:
     pipelines.openshift.io/runtime: generic
     pipelines.openshift.io/strategy: docker
     pipelines.openshift.io/used-by: build-cloud
-  name: docker-build-rhtap
+  name: python-docker-build-rhtap
 spec:
   finally:
     - name: show-sbom
