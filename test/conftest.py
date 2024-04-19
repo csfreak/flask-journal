@@ -5,7 +5,7 @@ from typing import Generator
 import pytest
 from flask import Flask, g
 from flask.testing import FlaskClient
-from flask_security import UserDatastore
+from flask_security.datastore import UserDatastore
 from flask_sqlalchemy import SQLAlchemy
 
 from flask_journal.app import create_app
