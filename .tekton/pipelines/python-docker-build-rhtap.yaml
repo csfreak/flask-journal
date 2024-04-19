@@ -181,7 +181,7 @@ spec:
         - name: COMMIT_SHA
           value: $(tasks.clone-repository.results.commit)
       runAfter:
-        - run-python
+        - run-pytest
         - run-python-build
       taskRef:
         name: buildah-rhtap
