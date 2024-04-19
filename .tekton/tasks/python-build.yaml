@@ -41,17 +41,23 @@ spec:
   steps:
     - name: setup-venv
       script: |
-        pip -m venv /venv
-    - name: install-requirement
+        #!/usr/bin/env bash
+        set -e
+        python -m venv /venv
+    - name: install-requirements
       script: |
-        /venv/bin/activate
+        #!/usr/bin/env bash
+        source/venv/bin/activate
         set -e
         pip install build
     - name: pytest
       script: |
-        /venv/bin/activate
+        #!/usr/bin/env bash
+        source /venv/bin/activate
         set -e
         python -m build
     - name: get-builds
       script: |
+        #!/usr/bin/env bash
+        set -e
         ls -1 $(inputs.params.DEST_PATH) | tee $(results.build-artifacts.path)

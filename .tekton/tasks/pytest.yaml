@@ -43,10 +43,14 @@ spec:
   steps:
     - name: setup-venv
       script: |
-        pip -m venv /venv
-    - name: install-requirement
+        #!/usr/bin/env bash
+        set -e
+        python -m venv /venv
+    - name: install-requirements
       script: |
-        /venv/bin/activate
+        #!/usr/bin/env bash
+        source /venv/bin/activate
+        set -e
         if [ -n "$(inputs.params.REQUIREMENTS_FILE)" ] && [ -e "$(inputs.params.SOURCE_PATH)/$(inputs.params.REQUIREMENTS_FILE)" ];then
           pip install -r $(inputs.params.SOURCE_PATH)/$(inputs.params.REQUIREMENTS_FILE)
         elif [ -n "$(inputs.params.REQUIREMENTS_FILE)" ] && [ -e "$(inputs.params.REQUIREMENTS_FILE)" ];then
@@ -62,6 +66,7 @@ spec:
     - name: pytest
       workingDir: $(workspaces.source.path)/$(inputs.params.SOURCE_PATH)
       script: |
-        /venv/bin/activate
+        #!/usr/bin/env bash
+        source /venv/bin/activate
         set -e
         pytest $(inputs.params.PYTEST_ARGS)
