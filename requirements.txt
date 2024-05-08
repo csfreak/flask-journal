@@ -11,7 +11,7 @@ PyMySQL >=1.1.0
 # Security Packages
 Flask-Security-Too >=5.4.2,<6
 argon2-cffi >=21.3
-flask-mailman >= 1.0.0,< 1.1.0
+flask-mailman >= 1.0.0,< 1.2.0
 
 # Metrics
 prometheus-flask-exporter >=0.23.0
