@@ -3,7 +3,7 @@ Flask >=3.0.3,<3.1
 # DB Packages
 Flask-SQLAlchemy >=3.1.0,<3.2
 SQLAlchemy >=2.0.29,<2.1
-alembic >=1.13.1,<1.14
+alembic >=1.13.1,<1.15
 flask-migrate >=4.0.7,<5
 sqlalchemy_easy_softdelete >=0.8.2
 PyMySQL >=1.1.0
