@@ -1,4 +1,4 @@
-Flask >=3.0.3,<3.1
+Flask >=3.0.3,<3.2
 
 # DB Packages
 Flask-SQLAlchemy >=3.1.0,<3.2
